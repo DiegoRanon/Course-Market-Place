@@ -11,17 +11,16 @@ export default function Footer({
         { text: "Programming", href: "#" },
         { text: "Design", href: "#" },
         { text: "Business", href: "#" },
-        { text: "Marketing", href: "#" }
-      ]
+        { text: "Marketing", href: "#" },
+      ],
     },
     {
       title: "Company",
       links: [
         { text: "About Us", href: "/about" },
         { text: "Contact", href: "/contact" },
-        { text: "Pricing", href: "/pricing" },
-        { text: "Careers", href: "/careers" }
-      ]
+        { text: "Careers", href: "/careers" },
+      ],
     },
     {
       title: "Support",
@@ -29,9 +28,9 @@ export default function Footer({
         { text: "Help Center", href: "/help" },
         { text: "Contact Support", href: "/contact" },
         { text: "Privacy Policy", href: "/privacy" },
-        { text: "Terms of Service", href: "/terms" }
-      ]
-    }
+        { text: "Terms of Service", href: "/terms" },
+      ],
+    },
   ],
   backgroundClass = "bg-gray-900",
   textColor = "text-white",
@@ -40,7 +39,7 @@ export default function Footer({
   gridCols = "grid-cols-1 md:grid-cols-4",
   padding = "py-12",
   copyrightText = "© 2024 CourseMarket. All rights reserved.",
-  showCopyright = true
+  showCopyright = true,
 }) {
   return (
     <footer className={`${backgroundClass} ${textColor} ${padding}`}>
@@ -51,9 +50,7 @@ export default function Footer({
             <h3 className={`text-2xl font-bold ${companyColor} mb-4`}>
               {companyName}
             </h3>
-            <p className={linkColor}>
-              {companyDescription}
-            </p>
+            <p className={linkColor}>{companyDescription}</p>
           </div>
 
           {/* Navigation Sections */}
@@ -63,8 +60,8 @@ export default function Footer({
               <ul className="space-y-2">
                 {section.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
-                    <Link 
-                      href={link.href} 
+                    <Link
+                      href={link.href}
                       className={`${linkColor} ${linkHoverColor} transition-colors`}
                     >
                       {link.text}
@@ -85,4 +82,4 @@ export default function Footer({
       </div>
     </footer>
   );
-} 
+}

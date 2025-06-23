@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 export default function CategoryGrid({
@@ -11,7 +13,7 @@ export default function CategoryGrid({
   backgroundClass = "bg-gray-50",
   gridCols = "grid-cols-2 md:grid-cols-4",
   onCategoryClick = null,
-  showLinks = true
+  showLinks = true,
 }) {
   const handleClick = (category) => {
     if (onCategoryClick) {
@@ -27,7 +29,9 @@ export default function CategoryGrid({
           {categories.map((category) => {
             const CategoryContent = (
               <div className="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-                <div className={`${category.color} w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl`}>
+                <div
+                  className={`${category.color} w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl`}
+                >
                   {category.icon}
                 </div>
                 <h3 className="font-semibold text-gray-900">{category.name}</h3>
@@ -52,4 +56,4 @@ export default function CategoryGrid({
       </div>
     </section>
   );
-} 
+}
