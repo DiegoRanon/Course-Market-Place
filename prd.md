@@ -1,5 +1,3 @@
-Absolutely! Let’s create a professional Product Requirements Document (PRD) for your project. Since you're designing the platform yourselves, this PRD will serve as a blueprint to align your team and your client.
-
 ---
 
 ## 📄 Product Requirements Document (PRD)
@@ -19,9 +17,9 @@ To design and develop a web platform where users can purchase and watch professi
 
 ### 3. **Target Audience**
 
-* Aspiring professionals seeking affordable and structured skill development
-* Small businesses looking to train staff with curated content
-* Individuals preferring curated, high-quality content over user-generated variety
+- Aspiring professionals seeking affordable and structured skill development
+- Small businesses looking to train staff with curated content
+- Individuals preferring curated, high-quality content over user-generated variety
 
 ---
 
@@ -29,67 +27,67 @@ To design and develop a web platform where users can purchase and watch professi
 
 #### 4.1 User Roles
 
-* **Admin**: Full control over content, users, analytics, etc.
-* **Instructor (Internal team)**: Can upload, manage, and edit content.
-* **Student**: Can browse, purchase, and view courses.
+- **Admin**: Full control over content, users, analytics, etc.
+- **Instructor (Internal team)**: Can upload, manage, and edit content.
+- **Student**: Can browse, purchase, and view courses.
 
 #### 4.2 Core Functionalities
 
 ##### A. **Landing Page**
 
-* Hero section (branding + CTA)
-* Course categories
-* Testimonials
-* Instructor/team introduction
-* Pricing / plans (if applicable)
+- Hero section (branding + CTA)
+- Course categories
+- Testimonials
+- Instructor/team introduction
+- Pricing / plans (if applicable)
 
 ##### B. **Course Marketplace**
 
-* Browse/search courses
-* Filter by topic, difficulty, price
-* Course previews (intro video + curriculum)
-* Ratings/reviews
+- Browse/search courses
+- Filter by topic, difficulty, price
+- Course previews (intro video + curriculum)
+- Ratings/reviews
 
 ##### C. **Course Page**
 
-* Curriculum outline (drip or free-flow)
-* Video player
-* Quizzes/Assessments (optional phase 2)
-* Progress tracking
+- Curriculum outline (drip or free-flow)
+- Video player
+- Quizzes/Assessments (optional phase 2)
+- Progress tracking
 
 ##### D. **User Dashboard**
 
-* Enrolled courses
-* Course progress tracking
-* Certificates (optional)
-* Account settings
+- Enrolled courses
+- Course progress tracking
+- Certificates (optional)
+- Account settings
 
 ##### E. **Admin Panel**
 
-* Manage users and roles
-* Upload/manage courses
-* View analytics (sales, user growth)
-* Edit site content (CMS-like)
+- Manage users and roles
+- Upload/manage courses
+- View analytics (sales, user growth)
+- Edit site content (CMS-like)
 
 ---
 
 ### 5. **Technical Requirements**
 
-* **Frontend**: Next.js (React-based)
-* **Backend**: Supabase / Firebase / Node.js API
-* **Database**: PostgreSQL (via Supabase)
-* **Authentication**: Supabase Auth or NextAuth
-* **Payments**: Stripe
-* **Hosting**: Vercel (for frontend)
+- **Frontend**: Next.js (React-based)
+- **Backend**: Supabase / Firebase / Node.js API
+- **Database**: PostgreSQL (via Supabase)
+- **Authentication**: Supabase Auth or NextAuth
+- **Payments**: Stripe
+- **Hosting**: Vercel (for frontend)
 
 ---
 
 ### 6. **Design Requirements**
 
-* Mobile responsive
-* Clean, modern UI (inspired by sites like Teachable, Skillshare)
-* Dark/light mode toggle (optional)
-* Custom branding for business man (logo, colors, fonts)
+- Mobile responsive
+- Clean, modern UI (inspired by sites like Teachable, Skillshare)
+- Dark/light mode toggle (optional)
+- Custom branding for business man (logo, colors, fonts)
 
 ---
 
@@ -107,12 +105,10 @@ Breakdown over 4–6 weeks (example):
 
 ### 8. **Future Features (Phase 2)**
 
-* Certificate generation
-* Mobile app (React Native)
-* Community features (comments, forums)
-* Live streaming
-* Gamification (badges, leaderboards)
+- Certificate generation
+- Mobile app (React Native)
+- Community features (comments, forums)
+- Live streaming
+- Gamification (badges, leaderboards)
 
 ---
-
-Would you like this turned into a formatted Notion or Markdown file? Or should we start on the wireframes / flow diagrams next?
