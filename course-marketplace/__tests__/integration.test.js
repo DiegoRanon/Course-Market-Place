@@ -7,16 +7,16 @@ import {
   updateLessonProgress,
   getCourseReviews,
   createReview,
-} from "../lib/database";
-import { signUp, signIn } from "../lib/auth";
+} from "../app/lib/database";
+import { signUp, signIn } from "../app/lib/auth";
 import {
   getCurrentUser,
   getUserProfile,
   isAdmin,
   isInstructor,
-} from "../lib/supabase";
-import { testSupabaseConnection, testAuth } from "../lib/test-connection";
-import { supabase } from "../lib/supabase";
+} from "../app/lib/supabase";
+import { testSupabaseConnection, testAuth } from "../app/lib/test-connection";
+import { supabase } from "../app/lib/supabase";
 
 // Mock the utility functions from supabase.js
 jest.mock("../lib/supabase", () => {

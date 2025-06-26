@@ -2,28 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 
-const ROLE_OPTIONS = [
-  {
-    value: "student",
-    label: "Student",
-    description: "Browse, purchase, and view courses.",
-  },
-  {
-    value: "instructor",
-    label: "Instructor",
-    description: "Upload, manage, and edit content.",
-  },
-  {
-    value: "admin",
-    label: "Admin",
-    description: "Full control over content, users, analytics, etc.",
-  },
-];
+const ADMIN_ACCESS_CODE = "ADMIN2024"; // In production, this should be an environment variable
 
-export default function RoleBasedSignUp() {
+export default function AdminSignUp() {
   const { signUp } = useAuth();
   const router = useRouter();
 
@@ -33,7 +17,7 @@ export default function RoleBasedSignUp() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "",
+    adminAccessCode: "",
     agreeTerms: false,
   });
 
@@ -55,14 +39,17 @@ export default function RoleBasedSignUp() {
           : "Please enter a valid email address";
       case "password":
         if (!value) return "Password is required";
-        return value.length >= 6
+        // Strong password requirements for admin accounts
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        return passwordRegex.test(value)
           ? ""
-          : "Password must be at least 6 characters long";
+          : "Password must be at least 8 characters long and contain uppercase, lowercase, and numbers";
       case "confirmPassword":
         if (!value) return "Please confirm your password";
         return value === formData.password ? "" : "Passwords do not match";
-      case "role":
-        return value ? "" : "Please select a role";
+      case "adminAccessCode":
+        if (!value) return "Admin access code is required";
+        return value === ADMIN_ACCESS_CODE ? "" : "Invalid admin access code";
       case "agreeTerms":
         return value ? "" : "You must agree to the terms and conditions";
       default:
@@ -134,7 +121,7 @@ export default function RoleBasedSignUp() {
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-        role: formData.role,
+        role: "admin",
       };
       await signUp(formData.email, formData.password, userData);
       router.push("/auth/confirm");
@@ -149,25 +136,54 @@ export default function RoleBasedSignUp() {
     }
   };
 
-  const selectedRole = ROLE_OPTIONS.find((r) => r.value === formData.role);
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+            Create Admin Account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{" "}
             <Link
-              href="/login"
+              href="/signup"
               className="font-medium text-blue-600 hover:text-blue-500"
             >
-              sign in to your existing account
+              Create a regular user account
             </Link>
           </p>
         </div>
+
+        {/* Security Warning */}
+        <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <span className="text-amber-400 text-lg">⚠️</span>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-amber-800">
+                Security Notice
+              </h3>
+              <div className="mt-2 text-sm text-amber-700">
+                <p>
+                  Admin accounts have elevated privileges. Only create admin accounts for trusted personnel.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Admin Role Description */}
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <h3 className="text-sm font-medium text-blue-800 mb-2">
+            Admin Account Privileges
+          </h3>
+          <p className="text-sm text-blue-700">
+            This account will have full administrative privileges,{" "}
+            including user management, content oversight, and system analytics.
+          </p>
+        </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {/* Message Display */}
           {message.text && (
@@ -177,11 +193,11 @@ export default function RoleBasedSignUp() {
                   ? "bg-green-50 border border-green-200 text-green-800"
                   : "bg-red-50 border border-red-200 text-red-800"
               }`}
-              role="alert"
             >
               {message.text}
             </div>
           )}
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -203,9 +219,7 @@ export default function RoleBasedSignUp() {
                   }`}
                   placeholder="First name"
                   aria-invalid={!!errors.firstName}
-                  aria-describedby={
-                    errors.firstName ? "firstName-error" : undefined
-                  }
+                  aria-describedby={errors.firstName ? "firstName-error" : undefined}
                 />
                 {errors.firstName && (
                   <p
@@ -236,9 +250,7 @@ export default function RoleBasedSignUp() {
                   }`}
                   placeholder="Last name"
                   aria-invalid={!!errors.lastName}
-                  aria-describedby={
-                    errors.lastName ? "lastName-error" : undefined
-                  }
+                  aria-describedby={errors.lastName ? "lastName-error" : undefined}
                 />
                 {errors.lastName && (
                   <p
@@ -251,6 +263,7 @@ export default function RoleBasedSignUp() {
                 )}
               </div>
             </div>
+
             <div>
               <label
                 htmlFor="email"
@@ -283,6 +296,7 @@ export default function RoleBasedSignUp() {
                 </p>
               )}
             </div>
+
             <div>
               <label
                 htmlFor="password"
@@ -301,11 +315,9 @@ export default function RoleBasedSignUp() {
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${
                   errors.password ? "border-red-300" : "border-gray-300"
                 }`}
-                placeholder="Password"
+                placeholder="Password (min 8 chars, uppercase, lowercase, numbers)"
                 aria-invalid={!!errors.password}
-                aria-describedby={
-                  errors.password ? "password-error" : undefined
-                }
+                aria-describedby={errors.password ? "password-error" : undefined}
               />
               {errors.password && (
                 <p
@@ -317,6 +329,7 @@ export default function RoleBasedSignUp() {
                 </p>
               )}
             </div>
+
             <div>
               <label
                 htmlFor="confirmPassword"
@@ -337,9 +350,7 @@ export default function RoleBasedSignUp() {
                 }`}
                 placeholder="Confirm password"
                 aria-invalid={!!errors.confirmPassword}
-                aria-describedby={
-                  errors.confirmPassword ? "confirmPassword-error" : undefined
-                }
+                aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
               />
               {errors.confirmPassword && (
                 <p
@@ -351,97 +362,113 @@ export default function RoleBasedSignUp() {
                 </p>
               )}
             </div>
+
             <div>
               <label
-                htmlFor="role"
+                htmlFor="adminAccessCode"
                 className="block text-sm font-medium text-gray-700"
               >
-                Role
+                Admin Access Code
               </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
+              <input
+                id="adminAccessCode"
+                name="adminAccessCode"
+                type="password"
+                value={formData.adminAccessCode}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
-                className={`mt-1 block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                  errors.role ? "border-red-300" : "border-gray-300"
+                className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${
+                  errors.adminAccessCode ? "border-red-300" : "border-gray-300"
                 }`}
-                aria-invalid={!!errors.role}
-                aria-describedby={errors.role ? "role-error" : undefined}
-              >
-                <option value="" disabled>
-                  Select a role
-                </option>
-                {ROLE_OPTIONS.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-              {errors.role && (
+                placeholder="Enter the administrative access code"
+                aria-invalid={!!errors.adminAccessCode}
+                aria-describedby={errors.adminAccessCode ? "adminAccessCode-error" : undefined}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Enter the administrative access code provided by your organization.
+              </p>
+              {errors.adminAccessCode && (
                 <p
                   className="mt-1 text-sm text-red-600"
                   role="alert"
-                  id="role-error"
+                  id="adminAccessCode-error"
                 >
-                  {errors.role}
+                  {errors.adminAccessCode}
                 </p>
               )}
-              {/* Role Descriptions */}
-              <div className="mt-2 space-y-1">
-                {ROLE_OPTIONS.map((role) => (
-                  <div key={role.value} className="text-xs text-gray-500">
-                    <span className="font-semibold">{role.label}:</span>{" "}
-                    {role.description}
-                  </div>
-                ))}
-              </div>
             </div>
-          </div>
-          <div className="flex items-center">
-            <input
-              id="agreeTerms"
-              name="agreeTerms"
-              type="checkbox"
-              checked={formData.agreeTerms}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label
-              htmlFor="agreeTerms"
-              className="ml-2 block text-sm text-gray-900"
-            >
-              I agree to the{" "}
-              <Link href="/terms" className="text-blue-600 hover:text-blue-500">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link
-                href="/privacy"
-                className="text-blue-600 hover:text-blue-500"
+
+            <div className="flex items-center">
+              <input
+                id="agreeTerms"
+                name="agreeTerms"
+                type="checkbox"
+                checked={formData.agreeTerms}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
+                  errors.agreeTerms ? "border-red-300" : ""
+                }`}
+                aria-invalid={!!errors.agreeTerms}
+                aria-describedby={errors.agreeTerms ? "agreeTerms-error" : undefined}
+              />
+              <label htmlFor="agreeTerms" className="ml-2 block text-sm text-gray-900">
+                I agree to the{" "}
+                <Link
+                  href="/terms"
+                  className="text-blue-600 hover:text-blue-500"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms and Conditions
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  className="text-blue-600 hover:text-blue-500"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Privacy Policy
+                </Link>
+              </label>
+            </div>
+            {errors.agreeTerms && (
+              <p
+                className="mt-1 text-sm text-red-600"
+                role="alert"
+                id="agreeTerms-error"
               >
-                Privacy Policy
-              </Link>
-            </label>
+                {errors.agreeTerms}
+              </p>
+            )}
           </div>
-          {errors.agreeTerms && (
-            <p className="text-sm text-red-600" role="alert">
-              {errors.agreeTerms}
-            </p>
-          )}
+
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              {isLoading ? "Creating account..." : "Create Account"}
+              {isLoading ? "Creating Admin Account..." : "Create Admin Account"}
             </button>
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Need a regular account?{" "}
+              <Link
+                href="/signup"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Create a standard user account
+              </Link>
+            </p>
           </div>
         </form>
       </div>
     </div>
   );
-}
+} 

@@ -1,4 +1,4 @@
-import { getCourses, getCategories, enrollInCourse } from "../lib/database";
+import { getCourses, getCategories, enrollInCourse } from "../app/lib/database";
 
 // Mock Supabase
 jest.mock("../lib/supabase", () => ({
@@ -8,7 +8,7 @@ jest.mock("../lib/supabase", () => ({
 }));
 
 // Import the mocked supabase
-import { supabase } from "../lib/supabase";
+import { supabase } from "../app/lib/supabase";
 
 describe("Database Operations", () => {
   beforeEach(() => {

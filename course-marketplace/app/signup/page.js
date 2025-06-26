@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 
 export default function SignUp() {
@@ -371,6 +371,19 @@ export default function SignUp() {
                   GitHub
                 </button>
               </div>
+            </div>
+
+            {/* Admin Signup Link */}
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Need administrative access?{" "}
+                <Link
+                  href="/signup/admin"
+                  className="font-medium text-red-600 hover:text-red-500"
+                >
+                  Create an admin account
+                </Link>
+              </p>
             </div>
           </div>
         </form>

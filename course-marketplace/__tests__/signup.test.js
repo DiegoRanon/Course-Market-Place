@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/app/lib/AuthProvider";
 import SignUp from "@/app/signup/page";
 import "@testing-library/jest-dom";
 
@@ -9,9 +9,10 @@ jest.mock("@/components/AuthProvider", () => ({
 }));
 
 // Mock Next.js router
+const mockPush = jest.fn();
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: jest.fn(),
+    push: mockPush,
     replace: jest.fn(),
   }),
 }));
@@ -31,6 +32,7 @@ describe("SignUp Page", () => {
     });
     mockSignUp.mockClear();
     mockSignIn.mockClear();
+    mockPush.mockClear();
   });
 
   describe("Rendering", () => {
@@ -242,7 +244,7 @@ describe("SignUp Page", () => {
       });
     });
 
-    test("shows success message on successful signup", async () => {
+    test("redirects to confirmation page on successful signup", async () => {
       mockSignUp.mockResolvedValue({ user: { id: "123" } });
 
       render(<SignUp />);
@@ -274,11 +276,7 @@ describe("SignUp Page", () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(
-            "Account created successfully! Please check your email to verify your account."
-          )
-        ).toBeInTheDocument();
+        expect(mockPush).toHaveBeenCalledWith("/auth/confirm");
       });
     });
 
@@ -326,6 +324,13 @@ describe("SignUp Page", () => {
 
       const signInLink = screen.getByText("sign in to your existing account");
       expect(signInLink).toHaveAttribute("href", "/login");
+    });
+
+    test("has link to admin signup page", () => {
+      render(<SignUp />);
+
+      const adminSignupLink = screen.getByText("Create an admin account");
+      expect(adminSignupLink).toHaveAttribute("href", "/signup/admin");
     });
 
     test("clears form errors when user starts typing", async () => {

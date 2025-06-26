@@ -7,8 +7,8 @@ import {
   resetPassword,
   updatePassword,
   updateProfile,
-} from "../lib/auth";
-import { supabase } from "../lib/supabase";
+} from "../app/lib/auth";
+import { supabase } from "../app/lib/supabase";
 
 // Mock Supabase client
 jest.mock("../lib/supabase", () => ({

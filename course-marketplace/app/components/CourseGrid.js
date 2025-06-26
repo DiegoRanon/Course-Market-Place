@@ -101,6 +101,11 @@ export default function CourseGrid({
     ));
   };
 
+  // Custom number formatting function to avoid hydration mismatch
+  const formatNumber = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   return (
     <section className={`py-16 ${backgroundClass}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,7 +146,7 @@ export default function CourseGrid({
                       {course.rating}
                     </span>
                     <span className="ml-2 text-sm text-gray-500">
-                      ({course.students.toLocaleString()})
+                      ({formatNumber(course.students)})
                     </span>
                   </div>
                 )}

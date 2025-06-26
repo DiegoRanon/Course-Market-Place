@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/app/lib/AuthProvider";
 import RoleBasedSignUp from "@/app/signup/role-based/page";
 import "@testing-library/jest-dom";
 

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 
 export default function Navigation() {
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, loading, signOut, isAdmin, isInstructor } = useAuth();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const dropdownRef = useRef(null);
   const router = useRouter();
 
@@ -50,19 +51,31 @@ export default function Navigation() {
     return user.email;
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (e) => {
+    e.preventDefault(); // Prevent default button behavior
+    
+    if (isSigningOut) return; // Prevent multiple clicks
+    
     try {
+      setIsSigningOut(true); // Set loading state
       await signOut();
       setIsProfileDropdownOpen(false);
       router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
+      setIsSigningOut(false); // Reset loading state on error
     }
   };
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
   };
+
+  // Determine if user has admin role
+  const userIsAdmin = profile?.role === "admin";
+  
+  // Determine if user has instructor role
+  const userIsInstructor = profile?.role === "instructor" || userIsAdmin;
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -109,18 +122,37 @@ export default function Navigation() {
             >
               Courses
             </Link>
-            <Link
-              href="/dashboard"
-              className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/admin"
-              className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
-            >
-              Admin
-            </Link>
+            
+            {/* Show My Learning for authenticated users (all roles) */}
+            {user && (
+              <Link
+                href="/dashboard"
+                className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
+              >
+                My Learning
+              </Link>
+            )}
+            
+            {/* Show Teach link for instructors and admins */}
+            {userIsInstructor && (
+              <Link
+                href="/admin/courses"
+                className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
+              >
+                Teach
+              </Link>
+            )}
+            
+            {/* Only show Admin link in nav for admins */}
+            {userIsAdmin && (
+              <Link
+                href="/admin"
+                className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
+              >
+                Admin
+              </Link>
+            )}
+            
             <Link
               href="/contact"
               className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
@@ -176,6 +208,11 @@ export default function Navigation() {
                           {getDisplayName()}
                         </p>
                         <p className="text-sm text-gray-500">{user.email}</p>
+                        {profile?.role && (
+                          <p className="text-xs text-gray-500 mt-1 capitalize">
+                            Role: {profile.role}
+                          </p>
+                        )}
                       </div>
 
                       {/* Navigation Links */}
@@ -184,7 +221,7 @@ export default function Navigation() {
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                         onClick={() => setIsProfileDropdownOpen(false)}
                       >
-                        Dashboard
+                        My Learning
                       </Link>
 
                       <Link
@@ -196,7 +233,7 @@ export default function Navigation() {
                       </Link>
 
                       {/* Role-specific links */}
-                      {profile?.role === "admin" && (
+                      {userIsAdmin && (
                         <Link
                           href="/admin"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -206,8 +243,7 @@ export default function Navigation() {
                         </Link>
                       )}
 
-                      {(profile?.role === "instructor" ||
-                        profile?.role === "admin") && (
+                      {userIsInstructor && (
                         <Link
                           href="/admin/courses"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -217,12 +253,27 @@ export default function Navigation() {
                         </Link>
                       )}
 
-                      {/* Sign Out */}
+                      {/* Sign Out Button */}
                       <button
                         onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        disabled={isSigningOut}
+                        className={`block w-full text-left px-4 py-2 text-sm ${
+                          isSigningOut 
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        } transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
                       >
-                        Sign out
+                        {isSigningOut ? (
+                          <span className="flex items-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Signing out...
+                          </span>
+                        ) : (
+                          "Sign out"
+                        )}
                       </button>
                     </div>
                   </div>

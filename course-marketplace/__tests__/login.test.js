@@ -5,7 +5,7 @@ import {
   waitFor,
   act,
 } from "@testing-library/react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 import Login from "@/app/login/page";
 import "@testing-library/jest-dom";

@@ -302,6 +302,14 @@ create policy "Users can view own profile" on profiles
 create policy "Users can update own profile" on profiles
   for update using (auth.uid() = id);
 
+-- Users can create their own profile (for initial signup)
+create policy "Users can create own profile" on profiles
+  for insert with check (auth.uid() = id);
+
+-- Allow profile creation during signup (when user is not yet authenticated)
+create policy "Allow profile creation during signup" on profiles
+  for insert with check (true);
+
 -- Admins can view all profiles
 create policy "Admins can view all profiles" on profiles
   for select using (
@@ -746,12 +754,17 @@ begin
   insert into public.profiles (id, first_name, last_name, full_name, role)
   values (
     new.id,
-    new.raw_user_meta_data->>'first_name',
-    new.raw_user_meta_data->>'last_name',
-    new.raw_user_meta_data->>'full_name',
+    coalesce(new.raw_user_meta_data->>'first_name', ''),
+    coalesce(new.raw_user_meta_data->>'last_name', ''),
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
     coalesce(new.raw_user_meta_data->>'role', 'student')
   );
   return new;
+exception
+  when others then
+    -- Log the error but don't fail the signup
+    raise log 'Error creating profile for user %: %', new.id, sqlerrm;
+    return new;
 end;
 $$ language plpgsql security definer;
 

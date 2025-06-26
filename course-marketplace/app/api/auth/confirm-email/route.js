@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/app/lib/supabase";
 
 export async function POST(request) {
   try {
@@ -17,6 +17,36 @@ export async function POST(request) {
           { success: false, error: error.message },
           { status: 400 }
         );
+      }
+
+      // If email confirmation is successful, create the user profile
+      if (data.user) {
+        try {
+          // Get user metadata to determine role
+          const userMetadata = data.user.user_metadata || {};
+          const role = userMetadata.role || "student";
+          
+          // Create profile record
+          const { error: profileError } = await supabase.from("profiles").insert({
+            id: data.user.id,
+            first_name: userMetadata.first_name || "",
+            last_name: userMetadata.last_name || "",
+            full_name: userMetadata.full_name || "",
+            role: role,
+            status: "active",
+          });
+
+          if (profileError) {
+            console.error("Error creating profile:", profileError);
+            // Don't fail the email confirmation if profile creation fails
+            // The profile can be created later
+          } else {
+            console.log("Profile created successfully for user:", data.user.id, "with role:", role);
+          }
+        } catch (profileError) {
+          console.error("Error creating profile:", profileError);
+          // Don't fail the email confirmation if profile creation fails
+        }
       }
 
       return NextResponse.json({ success: true });

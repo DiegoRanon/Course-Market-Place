@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/app/lib/supabase";
 
 const AuthContext = createContext({});
 
@@ -83,25 +83,9 @@ export const AuthProvider = ({ children }) => {
 
     if (error) throw error;
 
-    // Create profile record if signup is successful
-    if (data.user) {
-      try {
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: data.user.id,
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          full_name: userData.full_name,
-          role: "student",
-          status: "active",
-        });
-
-        if (profileError) {
-          console.error("Error creating profile:", profileError);
-        }
-      } catch (profileError) {
-        console.error("Error creating profile:", profileError);
-      }
-    }
+    // Profile will be created when email is confirmed
+    // This avoids RLS policy issues during signup
+    console.log("User signed up successfully. Profile will be created after email confirmation.");
 
     return data;
   };

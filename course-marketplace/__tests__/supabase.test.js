@@ -4,7 +4,7 @@ import {
   getUserProfile,
   isAdmin,
   isInstructor,
-} from "../lib/supabase";
+} from "../app/lib/supabase";
 
 // Mock environment variables
 const originalEnv = process.env;
@@ -40,7 +40,7 @@ describe("Supabase Configuration", () => {
 
     // Re-import to trigger the configuration
     jest.resetModules();
-    require("../lib/supabase");
+    require("../app/lib/supabase");
 
     expect(createClient).toHaveBeenCalledWith(
       "https://test.supabase.co",
@@ -59,7 +59,7 @@ describe("Supabase Configuration", () => {
     jest.resetModules();
 
     expect(() => {
-      require("../lib/supabase");
+      require("../app/lib/supabase");
     }).toThrow(
       "Missing Supabase environment variables. Please check your .env.local file."
     );

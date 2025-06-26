@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter, useSearchParams } from "next/navigation";
 import EmailConfirmation from "@/app/auth/confirm/page";
 import "@testing-library/jest-dom";
