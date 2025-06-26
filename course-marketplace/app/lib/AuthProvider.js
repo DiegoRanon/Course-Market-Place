@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
+import { signInWithPassword, signUpWithEmail, signOut as authSignOut } from "@/app/lib/api/auth";
+import { getUserProfile, updateUserProfile } from "@/app/lib/api/profiles";
 
 const AuthContext = createContext({});
 
@@ -55,17 +57,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async (userId) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return;
-      }
-
+      const data = await getUserProfile(userId);
       setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -73,50 +65,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signUp = async (email, password, userData) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData,
-      },
-    });
-
-    if (error) throw error;
-
-    // Profile will be created when email is confirmed
-    // This avoids RLS policy issues during signup
+    const data = await signUpWithEmail(email, password, userData);
     console.log("User signed up successfully. Profile will be created after email confirmation.");
-
     return data;
   };
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
+    const data = await signInWithPassword(email, password);
     return data;
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await authSignOut();
   };
 
   const updateProfile = async (updates) => {
     if (!user) throw new Error("No user logged in");
-
-    const { data, error } = await supabase
-      .from("profiles")
-      .update(updates)
-      .eq("id", user.id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
+    const data = await updateUserProfile(user.id, updates);
     setProfile(data);
     return data;
   };
@@ -125,8 +90,10 @@ export const AuthProvider = ({ children }) => {
     return profile?.role === "admin";
   };
 
-  const isInstructor = () => {
-    return profile?.role === "instructor" || profile?.role === "admin";
+  // Check if user is a Creator (can view course stats but not create courses)
+  // Note: Admins also have Creator permissions
+  const isCreator = () => {
+    return profile?.role === "creator" || profile?.role === "admin";
   };
 
   const value = {
@@ -138,7 +105,7 @@ export const AuthProvider = ({ children }) => {
     signOut,
     updateProfile,
     isAdmin,
-    isInstructor,
+    isCreator,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

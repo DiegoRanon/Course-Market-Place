@@ -1,33 +1,52 @@
 # Admin Account Setup Guide
 
-## Admin Signup Page
+## Creating Admin Accounts
 
-The admin signup page is available at `/signup/admin` and provides a secure way to create administrative accounts.
+Admin accounts are created directly in the database rather than through a signup form. This approach provides better security and control over administrative access.
 
-### Features
+### Process for Creating Admin Accounts
 
-- **Enhanced Security**: Requires admin access code (currently: `ADMIN2024`)
-- **Strong Password Requirements**: Minimum 8 characters with uppercase, lowercase, and numbers
-- **Role Assignment**: Automatically assigns admin role to the created account
-- **Secure UI**: Warning messages and clear privilege descriptions
+1. **Create Auth User**
+   - Use the Supabase dashboard or SQL to create a user in the `auth.users` table
+   - Alternatively, allow the user to sign up as a regular user first
 
-### Access
+2. **Set Admin Role in Profiles Table**
+   - After the user is created, update their profile record in the `profiles` table
+   - Set the `role` field to `admin`
 
-Navigate to: `http://localhost:3000/signup/admin`
+### Example SQL
 
-### Admin Access Code
+```sql
+-- Option 1: If creating a new user directly
+-- First, create the auth user (requires admin access to Supabase)
+SELECT supabase_auth.create_user(
+  'admin@example.com',
+  'secure_password_here',
+  '{"first_name": "Admin", "last_name": "User", "full_name": "Admin User", "role": "admin"}'::jsonb
+);
 
-The current admin access code is `ADMIN2024`. In production, this should be:
-1. Stored as an environment variable
-2. Regularly rotated
-3. Shared only with authorized personnel
+-- Option 2: If updating an existing user
+-- Just update the role in the profiles table
+UPDATE profiles
+SET role = 'admin'
+WHERE id = 'existing-user-uuid';
+```
 
-### Security Features
+### Using Supabase Dashboard
 
-1. **Access Code Protection**: Prevents unauthorized admin account creation
-2. **Strong Password Policy**: Enforces robust password requirements
-3. **Clear Warnings**: Users are informed about elevated privileges
-4. **Masked Inputs**: All sensitive fields use password-type inputs
+1. Navigate to your Supabase project dashboard
+2. Go to **Authentication** → **Users**
+3. Create a new user or locate an existing user
+4. Go to **Database** → **Table Editor** → **profiles**
+5. Find the user's profile record and update their `role` to `admin`
+
+### Security Considerations
+
+1. **Access Control**: Limit who can perform these operations to trusted personnel
+2. **Audit Logging**: Keep records of admin user creation
+3. **Strong Passwords**: Ensure admin accounts have strong passwords
+4. **Email Verification**: Admin accounts should still go through email verification
+5. **Multi-Factor Authentication**: Consider requiring MFA for admin accounts
 
 ### Account Privileges
 
@@ -35,24 +54,17 @@ Admin accounts have the following capabilities:
 - Full control over content, users, and analytics
 - Access to admin panel at `/admin`
 - User management functionality
-- Course management and oversight
+- Course management and oversight (including course creation)
 - System analytics and reporting
 
 ### Testing
 
-Run the admin signup tests with:
+You can test admin functionality using:
 ```bash
 npm test __tests__/admin-signup.test.js
 ```
+Note: These tests may need to be updated to reflect the direct database creation approach.
 
-### Production Considerations
+### Creating Creator Accounts
 
-1. **Environment Variables**: Move the access code to environment variables
-2. **Logging**: Add audit logging for admin account creation
-3. **Rate Limiting**: Implement rate limiting on the signup endpoint
-4. **Email Verification**: Ensure admin accounts also require email verification
-5. **Multi-Factor Authentication**: Consider requiring MFA for admin accounts
-
-### Creating Instructor Accounts
-
-As specified in the requirements, instructor accounts should be created directly in the database rather than through a signup form. Use the admin panel or database management tools to create instructor accounts. 
+Similarly, creator accounts should also be created directly in the database by setting the `role` field to `creator` in the profiles table. Creators have access to statistics for courses assigned to them but cannot create courses themselves - this is handled by admins. 

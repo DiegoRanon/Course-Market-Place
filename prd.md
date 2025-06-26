@@ -26,9 +26,8 @@ To design and develop a web platform where users can purchase and watch professi
 ### 4. **Key Features**
 
 #### 4.1 User Roles
-
-- **Admin**: Full control over content, users, analytics, etc.
-- **Instructor (Internal team)**: Can upload, manage, and edit content.
+- **Admin (Internal team)**: Can upload, manage, and edit content. Also has access to the data analytics of the whole website. 
+- **Creator**: Full control over content, users, analytics, etc.
 - **Student**: Can browse, purchase, and view courses.
 
 #### 4.2 Core Functionalities

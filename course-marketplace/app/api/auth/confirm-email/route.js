@@ -33,6 +33,7 @@ export async function POST(request) {
             last_name: userMetadata.last_name || "",
             full_name: userMetadata.full_name || "",
             role: role,
+            description: userMetadata.description || "",
             status: "active",
           });
 

@@ -3,9 +3,12 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
+import TextField from "@/app/components/ui/TextField";
+import Button from "@/app/components/ui/Button";
 
 export default function Login() {
   const { user, loading, signIn } = useAuth();
+  // Note: Admin accounts are created directly in the database
   const router = useRouter();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -103,6 +106,13 @@ export default function Login() {
             >
               create a new account
             </a>
+            {" | "}
+            <a
+              href="/signup/creator"
+              className="font-medium text-purple-600 hover:text-purple-500"
+            >
+              become a creator
+            </a>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -111,49 +121,34 @@ export default function Login() {
               {formError}
             </div>
           )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
-                  errors.email ? "border-red-300" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
-                placeholder="Email address"
-                aria-label="Email address"
-              />
-              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={formData.password}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
-                  errors.password ? "border-red-300" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
-                placeholder="Password"
-                aria-label="Password"
-              />
-              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-            </div>
+          <div className="rounded-md shadow-sm space-y-4">
+            <TextField
+              id="email"
+              name="email"
+              type="email"
+              label="Email Address"
+              value={formData.email}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              error={touched.email && errors.email ? errors.email : ""}
+              required
+              autoComplete="email"
+              placeholder="Email address"
+            />
+            
+            <TextField
+              id="password"
+              name="password"
+              type="password"
+              label="Password"
+              value={formData.password}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              error={touched.password && errors.password ? errors.password : ""}
+              required
+              autoComplete="current-password"
+              placeholder="Password"
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -182,13 +177,15 @@ export default function Login() {
           </div>
 
           <div>
-            <button
+            <Button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              isLoading={isLoading}
+              variant="primary"
+              className="w-full"
             >
-              {isLoading ? "Signing in..." : "Sign in"}
-            </button>
+              Sign in
+            </Button>
           </div>
 
           <div className="mt-6">
@@ -203,30 +200,25 @@ export default function Login() {
               </div>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin("google")}
-                  disabled={isLoading}
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Sign in with Google"
-                >
-                  <span className="sr-only">Sign in with Google</span>
-                  Sign in with Google
-                </button>
-              </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin("github")}
-                  disabled={isLoading}
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Sign in with GitHub"
-                >
-                  <span className="sr-only">Sign in with GitHub</span>
-                  Sign in with GitHub
-                </button>
-              </div>
+              <Button
+                type="button"
+                onClick={() => handleSocialLogin("google")}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full"
+              >
+                Sign in with Google
+              </Button>
+              
+              <Button
+                type="button"
+                onClick={() => handleSocialLogin("github")}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full"
+              >
+                Sign in with GitHub
+              </Button>
             </div>
           </div>
         </form>

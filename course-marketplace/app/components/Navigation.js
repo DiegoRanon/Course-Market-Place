@@ -6,7 +6,7 @@ import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 
 export default function Navigation() {
-  const { user, profile, loading, signOut, isAdmin, isInstructor } = useAuth();
+  const { user, profile, loading, signOut, isAdmin, isCreator } = useAuth();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const dropdownRef = useRef(null);
@@ -74,8 +74,8 @@ export default function Navigation() {
   // Determine if user has admin role
   const userIsAdmin = profile?.role === "admin";
   
-  // Determine if user has instructor role
-  const userIsInstructor = profile?.role === "instructor" || userIsAdmin;
+  // Determine if user has creator role
+  const userIsCreator = profile?.role === "creator" || userIsAdmin;
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -133,15 +133,15 @@ export default function Navigation() {
               </Link>
             )}
             
-            {/* Show Teach link for instructors and admins */}
-            {userIsInstructor && (
-              <Link
-                href="/admin/courses"
-                className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
-              >
-                Teach
-              </Link>
-            )}
+                                  {/* Show My Courses link for creators who can view their course statistics */}
+                      {userIsCreator && (
+                        <Link
+                          href="/admin/courses"
+                          className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
+                        >
+                          My Courses
+                        </Link>
+                      )}
             
             {/* Only show Admin link in nav for admins */}
             {userIsAdmin && (
@@ -243,13 +243,13 @@ export default function Navigation() {
                         </Link>
                       )}
 
-                      {userIsInstructor && (
+                      {userIsCreator && (
                         <Link
                           href="/admin/courses"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                           onClick={() => setIsProfileDropdownOpen(false)}
                         >
-                          My Courses
+                          My Course Stats
                         </Link>
                       )}
 
@@ -293,6 +293,12 @@ export default function Navigation() {
                   className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 font-medium transition-colors"
                 >
                   Sign up
+                </Link>
+                <Link
+                  href="/signup/creator"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 font-medium transition-colors"
+                >
+                  Become a Creator
                 </Link>
               </>
             )}

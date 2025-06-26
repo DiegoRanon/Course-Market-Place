@@ -5,9 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 
-const ADMIN_ACCESS_CODE = "ADMIN2024"; // In production, this should be an environment variable
-
-export default function AdminSignUp() {
+export default function CreatorSignUp() {
   const { signUp } = useAuth();
   const router = useRouter();
 
@@ -17,7 +15,7 @@ export default function AdminSignUp() {
     email: "",
     password: "",
     confirmPassword: "",
-    adminAccessCode: "",
+    description: "",
     agreeTerms: false,
   });
 
@@ -39,17 +37,14 @@ export default function AdminSignUp() {
           : "Please enter a valid email address";
       case "password":
         if (!value) return "Password is required";
-        // Strong password requirements for admin accounts
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-        return passwordRegex.test(value)
+        return value.length >= 6
           ? ""
-          : "Password must be at least 8 characters long and contain uppercase, lowercase, and numbers";
+          : "Password must be at least 6 characters long";
       case "confirmPassword":
         if (!value) return "Please confirm your password";
         return value === formData.password ? "" : "Passwords do not match";
-      case "adminAccessCode":
-        if (!value) return "Admin access code is required";
-        return value === ADMIN_ACCESS_CODE ? "" : "Invalid admin access code";
+      case "description":
+        return value.trim() ? "" : "Description is required";
       case "agreeTerms":
         return value ? "" : "You must agree to the terms and conditions";
       default:
@@ -80,6 +75,7 @@ export default function AdminSignUp() {
     }
   };
 
+  // Show validation error on blur
   const handleBlur = (e) => {
     const { name, value, type, checked } = e.target;
     const fieldValue = type === "checkbox" ? checked : value;
@@ -99,31 +95,40 @@ export default function AdminSignUp() {
 
   const validateForm = () => {
     const newErrors = {};
+
     Object.keys(formData).forEach((field) => {
       const error = validateField(field, formData[field]);
       if (error) {
         newErrors[field] = error;
       }
     });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validateForm()) {
       return;
     }
+
     setIsLoading(true);
     setMessage({ type: "", text: "" });
+
     try {
       const userData = {
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-        role: "admin",
+        role: "creator", // Set role to creator
+        description: formData.description.trim(),
       };
+
       await signUp(formData.email, formData.password, userData);
+
+      // Redirect to email confirmation page
       router.push("/auth/confirm");
     } catch (error) {
       setMessage({
@@ -141,50 +146,20 @@ export default function AdminSignUp() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create Admin Account
+            Become a Creator
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{" "}
+            Create an account to share your expertise{" "}
             <Link
               href="/signup"
               className="font-medium text-blue-600 hover:text-blue-500"
             >
-              Create a regular user account
+              or sign up as a student
             </Link>
           </p>
         </div>
 
-        {/* Security Warning */}
-        <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <span className="text-amber-400 text-lg">⚠️</span>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-amber-800">
-                Security Notice
-              </h3>
-              <div className="mt-2 text-sm text-amber-700">
-                <p>
-                  Admin accounts have elevated privileges. Only create admin accounts for trusted personnel.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Admin Role Description */}
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-2">
-            Admin Account Privileges
-          </h3>
-          <p className="text-sm text-blue-700">
-            This account will have full administrative privileges,{" "}
-            including user management, content oversight, and system analytics.
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} role="form">
           {/* Message Display */}
           {message.text && (
             <div
@@ -218,15 +193,9 @@ export default function AdminSignUp() {
                     errors.firstName ? "border-red-300" : "border-gray-300"
                   }`}
                   placeholder="First name"
-                  aria-invalid={!!errors.firstName}
-                  aria-describedby={errors.firstName ? "firstName-error" : undefined}
                 />
                 {errors.firstName && (
-                  <p
-                    className="mt-1 text-sm text-red-600"
-                    role="alert"
-                    id="firstName-error"
-                  >
+                  <p className="mt-1 text-sm text-red-600">
                     {errors.firstName}
                   </p>
                 )}
@@ -249,17 +218,9 @@ export default function AdminSignUp() {
                     errors.lastName ? "border-red-300" : "border-gray-300"
                   }`}
                   placeholder="Last name"
-                  aria-invalid={!!errors.lastName}
-                  aria-describedby={errors.lastName ? "lastName-error" : undefined}
                 />
                 {errors.lastName && (
-                  <p
-                    className="mt-1 text-sm text-red-600"
-                    role="alert"
-                    id="lastName-error"
-                  >
-                    {errors.lastName}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
                 )}
               </div>
             </div>
@@ -283,17 +244,9 @@ export default function AdminSignUp() {
                   errors.email ? "border-red-300" : "border-gray-300"
                 }`}
                 placeholder="Email address"
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? "email-error" : undefined}
               />
               {errors.email && (
-                <p
-                  className="mt-1 text-sm text-red-600"
-                  role="alert"
-                  id="email-error"
-                >
-                  {errors.email}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
               )}
             </div>
 
@@ -315,18 +268,10 @@ export default function AdminSignUp() {
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${
                   errors.password ? "border-red-300" : "border-gray-300"
                 }`}
-                placeholder="Password (min 8 chars, uppercase, lowercase, numbers)"
-                aria-invalid={!!errors.password}
-                aria-describedby={errors.password ? "password-error" : undefined}
+                placeholder="Password (min. 6 characters)"
               />
               {errors.password && (
-                <p
-                  className="mt-1 text-sm text-red-600"
-                  role="alert"
-                  id="password-error"
-                >
-                  {errors.password}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
             </div>
 
@@ -348,16 +293,10 @@ export default function AdminSignUp() {
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${
                   errors.confirmPassword ? "border-red-300" : "border-gray-300"
                 }`}
-                placeholder="Confirm password"
-                aria-invalid={!!errors.confirmPassword}
-                aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
+                placeholder="Re-enter your password"
               />
               {errors.confirmPassword && (
-                <p
-                  className="mt-1 text-sm text-red-600"
-                  role="alert"
-                  id="confirmPassword-error"
-                >
+                <p className="mt-1 text-sm text-red-600">
                   {errors.confirmPassword}
                 </p>
               )}
@@ -365,109 +304,115 @@ export default function AdminSignUp() {
 
             <div>
               <label
-                htmlFor="adminAccessCode"
+                htmlFor="description"
                 className="block text-sm font-medium text-gray-700"
               >
-                Admin Access Code
+                Description
               </label>
-              <input
-                id="adminAccessCode"
-                name="adminAccessCode"
-                type="password"
-                value={formData.adminAccessCode}
+              <textarea
+                id="description"
+                name="description"
+                rows="4"
+                value={formData.description}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${
-                  errors.adminAccessCode ? "border-red-300" : "border-gray-300"
+                  errors.description ? "border-red-300" : "border-gray-300"
                 }`}
-                placeholder="Enter the administrative access code"
-                aria-invalid={!!errors.adminAccessCode}
-                aria-describedby={errors.adminAccessCode ? "adminAccessCode-error" : undefined}
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Enter the administrative access code provided by your organization.
-              </p>
-              {errors.adminAccessCode && (
-                <p
-                  className="mt-1 text-sm text-red-600"
-                  role="alert"
-                  id="adminAccessCode-error"
-                >
-                  {errors.adminAccessCode}
-                </p>
+                placeholder="Describe your expertise and what kind of content you'll create"
+              ></textarea>
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
               )}
             </div>
 
-            <div className="flex items-center">
-              <input
-                id="agreeTerms"
-                name="agreeTerms"
-                type="checkbox"
-                checked={formData.agreeTerms}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
-                  errors.agreeTerms ? "border-red-300" : ""
-                }`}
-                aria-invalid={!!errors.agreeTerms}
-                aria-describedby={errors.agreeTerms ? "agreeTerms-error" : undefined}
-              />
-              <label htmlFor="agreeTerms" className="ml-2 block text-sm text-gray-900">
-                I agree to the{" "}
-                <Link
-                  href="/terms"
-                  className="text-blue-600 hover:text-blue-500"
-                  target="_blank"
-                  rel="noopener noreferrer"
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="agreeTerms"
+                  name="agreeTerms"
+                  type="checkbox"
+                  checked={formData.agreeTerms}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label
+                  htmlFor="agreeTerms"
+                  className={`font-medium ${
+                    errors.agreeTerms ? "text-red-600" : "text-gray-700"
+                  }`}
                 >
-                  Terms and Conditions
-                </Link>{" "}
-                and{" "}
-                <Link
-                  href="/privacy"
-                  className="text-blue-600 hover:text-blue-500"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Privacy Policy
-                </Link>
-              </label>
+                  I agree to the{" "}
+                  <a href="#" className="text-blue-600 hover:text-blue-500">
+                    Terms and Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a href="#" className="text-blue-600 hover:text-blue-500">
+                    Privacy Policy
+                  </a>
+                </label>
+                {errors.agreeTerms && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.agreeTerms}
+                  </p>
+                )}
+              </div>
             </div>
-            {errors.agreeTerms && (
-              <p
-                className="mt-1 text-sm text-red-600"
-                role="alert"
-                id="agreeTerms-error"
-              >
-                {errors.agreeTerms}
-              </p>
-            )}
           </div>
 
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Creating Admin Account..." : "Create Admin Account"}
+              {isLoading ? (
+                <>
+                  <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  </span>
+                  Creating account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </button>
           </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Need a regular account?{" "}
-              <Link
-                href="/signup"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Create a standard user account
-              </Link>
-            </p>
-          </div>
         </form>
+
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

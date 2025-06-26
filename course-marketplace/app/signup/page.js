@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 
+// Note: Admin accounts are created directly in the database
 export default function SignUp() {
   const { signUp } = useAuth();
   const router = useRouter();
@@ -150,6 +151,13 @@ export default function SignUp() {
               className="font-medium text-blue-600 hover:text-blue-500"
             >
               sign in to your existing account
+            </Link>
+            {" | "}
+            <Link
+              href="/signup/creator"
+              className="font-medium text-purple-600 hover:text-purple-500"
+            >
+              become a creator
             </Link>
           </p>
         </div>
@@ -373,18 +381,7 @@ export default function SignUp() {
               </div>
             </div>
 
-            {/* Admin Signup Link */}
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600">
-                Need administrative access?{" "}
-                <Link
-                  href="/signup/admin"
-                  className="font-medium text-red-600 hover:text-red-500"
-                >
-                  Create an admin account
-                </Link>
-              </p>
-            </div>
+  
           </div>
         </form>
       </div>
