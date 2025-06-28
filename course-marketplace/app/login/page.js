@@ -92,24 +92,24 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Or{" "}
             <a
               href="/signup"
-              className="font-medium text-blue-600 hover:text-blue-500"
+              className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
             >
               create a new account
             </a>
             {" | "}
             <a
               href="/signup/creator"
-              className="font-medium text-purple-600 hover:text-purple-500"
+              className="font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300"
             >
               become a creator
             </a>
@@ -117,7 +117,7 @@ export default function Login() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {formError && (
-            <div className="rounded-md bg-red-50 border border-red-200 text-red-800 p-2 text-center">
+            <div className="rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-2 text-center">
               {formError}
             </div>
           )}
@@ -135,7 +135,7 @@ export default function Login() {
               autoComplete="email"
               placeholder="Email address"
             />
-            
+
             <TextField
               id="password"
               name="password"
@@ -157,11 +157,11 @@ export default function Login() {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:checked:bg-blue-600"
               />
               <label
                 htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-900"
+                className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
               >
                 Remember me
               </label>
@@ -169,7 +169,7 @@ export default function Login() {
             <div className="text-sm">
               <a
                 href="#"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Forgot your password?
               </a>
@@ -191,10 +191,10 @@ export default function Login() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-gray-300 dark:border-gray-700" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 text-gray-500">
+                <span className="px-2 bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                   Or continue with
                 </span>
               </div>
@@ -209,7 +209,7 @@ export default function Login() {
               >
                 Sign in with Google
               </Button>
-              
+
               <Button
                 type="button"
                 onClick={() => handleSocialLogin("github")}

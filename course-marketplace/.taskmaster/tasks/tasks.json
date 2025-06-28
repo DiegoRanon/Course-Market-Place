@@ -1,0 +1,726 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Next.js Project with Supabase Integration and shadcn/ui",
+        "description": "Initialize the Next.js project with JavaScript, configure Supabase client, set up shadcn/ui component library, and establish the basic project structure with routing.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "details": "1. Create a new Next.js project with JavaScript support using `npx create-next-app@latest`\n2. Install Supabase client: `npm install @supabase/supabase-js`\n3. Install and configure shadcn/ui:\n   - Run `npx shadcn-ui@latest init`\n   - Configure the UI library with your preferences\n   - Set up the color scheme and typography\n4. Create environment variables for Supabase URL and API key\n5. Set up a Supabase client utility file:\n```javascript\nimport { createClient } from '@supabase/supabase-js';\n\nconst supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;\nconst supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;\n\nexport const supabase = createClient(supabaseUrl, supabaseAnonKey);\n```\n6. Configure basic folder structure (pages, components, hooks, utils, styles)\n7. Set up responsive layout components with mobile-first approach\n8. Configure basic routing structure for main pages\n9. Set up Vercel deployment pipeline",
+        "testStrategy": "1. Verify Next.js project builds without errors\n2. Confirm Supabase connection works by testing a simple query\n3. Test responsive layout on multiple device sizes\n4. Verify environment variables are properly loaded\n5. Test deployment to Vercel staging environment\n6. Verify shadcn/ui components render correctly",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initial Next.js project setup with JavaScript",
+            "description": "Create a new Next.js project with JavaScript support and configure essential dependencies",
+            "dependencies": [],
+            "details": "1. Use create-next-app to initialize a new project\n2. Ensure JavaScript is properly configured\n3. Set up ESLint and Prettier for code quality\n4. Configure jsconfig.json with appropriate settings\n5. Install necessary dependencies (react, react-dom, next)\n6. Test the initial setup with a simple page",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Supabase client configuration and environment setup",
+            "description": "Set up Supabase client and configure environment variables for secure connection",
+            "dependencies": [
+              1
+            ],
+            "details": "1. Create a Supabase project in the dashboard\n2. Install @supabase/supabase-js package\n3. Create environment variables (.env.local) for Supabase URL and anon key\n4. Set up a utils/supabase.js file to initialize the Supabase client\n5. Configure Next.js to properly handle environment variables\n6. Test the connection to Supabase with a simple query",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "shadcn/ui installation and configuration",
+            "description": "Install and configure shadcn/ui component library for consistent UI design",
+            "dependencies": [
+              1
+            ],
+            "details": "1. Install shadcn/ui CLI: `npm install -D @shadcn/ui`\n2. Initialize shadcn/ui: `npx shadcn-ui@latest init`\n3. Configure the styling preferences (CSS variables, tailwind, etc.)\n4. Set up the color scheme and typography settings\n5. Install base components: `npx shadcn-ui@latest add button card input form dialog`\n6. Create a theme provider component for consistent styling\n7. Test the installed components with a sample page",
+            "status": "pending",
+            "testStrategy": "1. Verify all shadcn/ui components render correctly\n2. Test component customization and theming\n3. Ensure components are responsive across different screen sizes\n4. Verify accessibility features of the components"
+          },
+          {
+            "id": 4,
+            "title": "Project structure and component organization",
+            "description": "Establish a scalable project structure with proper component organization",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "1. Create folder structure (pages, components, lib, utils, styles, etc.)\n2. Set up shared components (layout, header, footer) using shadcn/ui\n3. Create reusable UI components\n4. Implement basic styling approach with Tailwind CSS and shadcn/ui\n5. Set up authentication flow with Supabase\n6. Create type definitions or JSDoc comments for data structures\n7. Implement basic routing structure",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Deployment pipeline configuration",
+            "description": "Configure deployment pipeline for continuous integration and delivery",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "1. Set up a GitHub repository for the project\n2. Configure Vercel or Netlify for deployment\n3. Set up environment variables in the deployment platform\n4. Configure build settings and commands\n5. Set up preview deployments for pull requests\n6. Create deployment documentation\n7. Test the complete deployment pipeline with a sample change",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement Database Schema and Models",
+        "description": "Design and implement the PostgreSQL database schema in Supabase including user roles, courses, enrollments, and progress tracking models.",
+        "status": "pending",
+        "dependencies": [
+          1
+        ],
+        "priority": "high",
+        "details": "1. Create the following tables in Supabase:\n   - users (extends Supabase auth users)\n     - id (UUID, primary key)\n     - role (enum: 'admin', 'creator', 'student')\n     - profile_data (JSON)\n     - created_at (timestamp)\n   - courses\n     - id (UUID, primary key)\n     - title (text)\n     - description (text)\n     - creator_id (UUID, foreign key to users)\n     - price (decimal)\n     - thumbnail_url (text)\n     - is_published (boolean)\n     - created_at (timestamp)\n   - sections\n     - id (UUID, primary key)\n     - course_id (UUID, foreign key to courses)\n     - title (text)\n     - order (integer)\n   - lessons\n     - id (UUID, primary key)\n     - section_id (UUID, foreign key to sections)\n     - title (text)\n     - description (text)\n     - video_url (text)\n     - order (integer)\n     - duration (integer, seconds)\n   - enrollments\n     - id (UUID, primary key)\n     - user_id (UUID, foreign key to users)\n     - course_id (UUID, foreign key to courses)\n     - purchased_at (timestamp)\n     - amount_paid (decimal)\n   - progress\n     - id (UUID, primary key)\n     - user_id (UUID, foreign key to users)\n     - lesson_id (UUID, foreign key to lessons)\n     - completed (boolean)\n     - last_watched_at (timestamp)\n     - watch_time (integer, seconds)\n2. Set up appropriate indexes for performance\n3. Configure Row Level Security (RLS) policies for each table\n4. Create database triggers for automatic timestamps\n5. Set up foreign key constraints",
+        "testStrategy": "1. Verify all tables are created with correct columns and constraints\n2. Test RLS policies by attempting access with different user roles\n3. Validate foreign key constraints work correctly\n4. Test data insertion and retrieval for each table\n5. Verify indexes are properly created and optimized",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement User and Authentication Tables",
+            "description": "Design and implement database tables for user management and authentication",
+            "dependencies": [],
+            "details": "Create tables for users, roles, permissions, and authentication. Include fields for user profiles, credentials, account status, and session management. Implement proper constraints, primary keys, and relationships. Document the schema with comments.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Course and Curriculum Tables",
+            "description": "Design and implement database tables for course content and curriculum structure",
+            "dependencies": [
+              1
+            ],
+            "details": "Create tables for courses, modules, lessons, resources, and assessments. Define relationships between curriculum components. Include metadata fields for content management. Implement versioning support for curriculum changes. Ensure proper constraints and foreign keys.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Enrollment and Progress Tracking Tables",
+            "description": "Design and implement database tables for student enrollment and learning progress",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create tables for course enrollments, progress tracking, assessment results, and completion status. Implement fields for timestamps, scores, and completion metrics. Design schema to efficiently query student progress and generate reports. Ensure proper relationships with user and course tables.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Row Level Security Policies and Access Control",
+            "description": "Configure Row Level Security policies to enforce data access restrictions",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Define RLS policies for each table based on user roles and permissions. Implement policies for instructors to access only their courses, students to access only enrolled courses, and admins to access all data. Test security policies with different user scenarios. Document all security implementations.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Optimize Indexes and Performance Tune Database",
+            "description": "Create appropriate indexes and optimize database performance",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Analyze query patterns and create indexes for frequently accessed fields. Implement composite indexes for common query combinations. Optimize join performance between related tables. Benchmark query performance before and after optimization. Document indexing strategy and performance improvements.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Implement Authentication System",
+        "description": "Set up Supabase authentication with role-based access control for Admin, Creator, and Student roles, including signup, login, and account management.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          2
+        ],
+        "priority": "high",
+        "details": "1. Configure Supabase Auth settings in the dashboard\n2. Create authentication UI components using shadcn/ui:\n   - SignUp.jsx\n   - Login.jsx\n   - ResetPassword.jsx\n   - UpdateProfile.jsx\n3. Implement role selection during signup\n4. Create authentication context and hooks:\n```javascript\n// auth-context.js\nimport { createContext, useContext, useEffect, useState } from 'react';\nimport { supabase } from '../utils/supabase-client';\n\nconst AuthContext = createContext();\n\nexport function AuthProvider({ children }) {\n  const [user, setUser] = useState(null);\n  const [loading, setLoading] = useState(true);\n  \n  // Implementation details...\n  \n  return (\n    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>\n      {children}\n    </AuthContext.Provider>\n  );\n}\n\nexport const useAuth = () => {\n  const context = useContext(AuthContext);\n  if (context === undefined) {\n    throw new Error('useAuth must be used within an AuthProvider');\n  }\n  return context;\n};\n```\n5. Implement protected routes with role-based access control\n6. Set up email verification flow\n7. Create account management page for profile updates\n8. Implement password reset functionality",
+        "testStrategy": "1. Test user registration with different roles\n2. Verify email verification process works\n3. Test login with valid and invalid credentials\n4. Verify password reset functionality\n5. Test role-based access restrictions\n6. Ensure auth state persists across page refreshes\n7. Test account management and profile updates\n8. Verify logout functionality",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Supabase Auth Service",
+            "description": "Set up and configure Supabase Auth service for the application",
+            "dependencies": [],
+            "details": "Initialize Supabase client with proper environment variables. Configure authentication settings in Supabase dashboard including allowed email domains, OAuth providers if needed, and security settings. Set up database tables and policies for user management. Test basic authentication flow with Supabase client.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Develop Signup and Login UI Components",
+            "description": "Create responsive and accessible UI components for user authentication",
+            "dependencies": [
+              1
+            ],
+            "details": "Design and implement signup form with validation. Create login form with proper error handling. Implement responsive layouts for both forms. Add loading states and error messages. Ensure accessibility compliance. Create password strength indicator for signup. Implement 'Remember me' functionality.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Authentication Context and Hooks",
+            "description": "Create React context and custom hooks to manage authentication state across the application",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop AuthContext to store user state and authentication methods. Create useAuth hook for components to access auth functionality. Implement protected routes with authentication guards. Add session persistence and token refresh logic. Create loading states for authentication operations. Implement logout functionality.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Set Up Role-Based Access Control",
+            "description": "Implement role-based permissions system to control access to different parts of the application",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Define user roles and permissions in database. Create database policies in Supabase for role-based access. Implement role checking in frontend components. Create higher-order components or hooks for role-based UI rendering. Test access control with different user roles. Document permission structure.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement Email Verification and Password Reset Flows",
+            "description": "Create secure flows for email verification and password reset functionality",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Configure Supabase email templates for verification and password reset. Implement email verification UI and logic. Create password reset request and confirmation pages. Add email verification status checking. Implement security measures like rate limiting for reset requests. Test complete flows from email receipt to completion.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Develop Account Management Functionality",
+            "description": "Create user profile and account management features",
+            "dependencies": [
+              1,
+              3,
+              4
+            ],
+            "details": "Implement profile viewing and editing functionality. Create account settings page with options to change email, password, and personal details. Add profile picture upload and management. Implement account deletion with confirmation. Create UI for viewing login history if applicable. Add two-factor authentication setup if required.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Develop Landing Page and Course Marketplace",
+        "description": "Create the landing page with hero section, featured courses, and testimonials, plus the course marketplace with browsing, search, and filtering functionality.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          2
+        ],
+        "priority": "medium",
+        "details": "1. Design and implement landing page components using shadcn/ui:\n   - Hero section with call-to-action\n   - Featured courses carousel\n   - Testimonials section\n   - Category highlights\n   - Footer with navigation\n2. Implement course marketplace components:\n   - Course card component using shadcn/ui Card\n   - Grid layout for courses\n   - Search functionality with debounce\n   - Filter sidebar with category, price, and duration filters using shadcn/ui components\n   - Pagination or infinite scroll\n3. Create API endpoints for course data:\n```javascript\n// pages/api/courses.js\nimport { supabase } from '../../utils/supabase-client';\n\nexport default async function handler(req, res) {\n  const { category, search, minPrice, maxPrice } = req.query;\n  \n  let query = supabase\n    .from('courses')\n    .select('*, users!creator_id(name)')\n    .eq('is_published', true);\n    \n  // Apply filters based on query params\n  if (category) {\n    query = query.eq('category', category);\n  }\n  \n  if (search) {\n    query = query.ilike('title', `%${search}%`);\n  }\n  \n  // More filter logic...\n  \n  const { data, error } = await query;\n  \n  if (error) {\n    return res.status(500).json({ error: error.message });\n  }\n  \n  return res.status(200).json(data);\n}\n```\n4. Implement client-side data fetching with SWR or React Query\n5. Create responsive grid layout that adapts to different screen sizes\n6. Implement search functionality with server-side filtering\n7. Add sorting options (newest, most popular, highest rated)",
+        "testStrategy": "1. Test responsive design on multiple device sizes\n2. Verify search functionality returns correct results\n3. Test all filter combinations\n4. Verify pagination or infinite scroll works correctly\n5. Test performance with large number of courses\n6. Verify featured courses display correctly on landing page\n7. Test navigation between landing page and course marketplace\n8. Verify course cards display all relevant information",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Landing Page Components and Layout",
+            "description": "Create responsive landing page components including hero section, featured courses, testimonials, and call-to-action sections.",
+            "dependencies": [],
+            "details": "Implement responsive design for all screen sizes. Create reusable UI components for the hero section with compelling copy and imagery. Design featured courses section with preview cards. Add testimonial carousel/grid. Include newsletter signup and footer sections. Ensure consistent styling with the design system.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Build Course Marketplace UI with Cards and Grid Layout",
+            "description": "Develop the marketplace page with course cards displayed in a responsive grid layout.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create reusable course card component with image, title, instructor, price, and rating. Implement responsive grid layout that adjusts based on screen size (4 columns on desktop, 2 on tablet, 1 on mobile). Add pagination or infinite scroll functionality. Include course quick-view functionality. Ensure accessibility compliance for all interactive elements.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Search, Filtering, and Sorting Functionality",
+            "description": "Add search bar, category filters, price range filters, and sorting options to the marketplace.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create search input with autocomplete suggestions. Implement category filter checkboxes/dropdown. Add price range slider. Create sorting dropdown (by price, popularity, newest). Ensure all filters can be combined. Implement client-side filtering for immediate feedback and prepare for server-side filtering integration. Add clear filters button and filter tags display.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Develop API Endpoints and Data Fetching for Course Listings",
+            "description": "Create backend API endpoints and implement data fetching for course listings with filtering and sorting capabilities.",
+            "dependencies": [
+              3
+            ],
+            "details": "Design RESTful API endpoints for course listings. Implement server-side filtering, sorting, and pagination. Create data models for courses with all necessary fields. Add caching mechanisms for improved performance. Implement error handling and loading states in the UI. Connect frontend filters to API parameters. Add data fetching hooks or services for reusability.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Implement Course Page and Video Player",
+        "description": "Create the individual course page with curriculum outline, secure video player integration, and progress tracking functionality.",
+        "status": "pending",
+        "dependencies": [
+          2,
+          3,
+          4
+        ],
+        "priority": "high",
+        "details": "1. Design and implement course page layout using shadcn/ui components:\n   - Course header with title, instructor, and enrollment button\n   - Course description and details section\n   - Curriculum accordion with sections and lessons\n   - Reviews section\n2. Integrate secure video player:\n   - Research and select appropriate video hosting solution\n   - Implement video player component with custom controls\n   - Set up secure video streaming with token-based authentication\n   - Add playback rate, quality selection, and fullscreen options\n3. Implement progress tracking:\n   - Create API endpoints for tracking video progress\n   - Implement auto-save of current timestamp\n   - Add completion tracking for lessons\n   - Create progress indicators in curriculum\n4. Add course navigation:\n   - Previous/next lesson buttons using shadcn/ui Button component\n   - Return to curriculum button\n   - Lesson completion checkbox\n5. Implement access control:\n   - Check enrollment status before allowing video playback\n   - Show preview content for non-enrolled users\n   - Display call-to-action for enrollment",
+        "testStrategy": "1. Test video player on different browsers and devices\n2. Verify progress is correctly saved and retrieved\n3. Test navigation between lessons\n4. Verify curriculum displays correctly with progress indicators\n5. Test access control for enrolled vs non-enrolled users\n6. Verify video playback controls work correctly\n7. Test resume functionality from last watched position\n8. Verify completion tracking accurately updates",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Course Page Layout and Curriculum Display",
+            "description": "Design and implement the course page layout with curriculum sections, lesson lists, and content organization.",
+            "dependencies": [],
+            "details": "Create responsive course page layout with sidebar navigation for curriculum, main content area for video/materials, and progress indicators. Implement expandable/collapsible sections for course modules and lessons. Design UI components for displaying lesson titles, durations, and completion status. Ensure mobile-friendly layout with appropriate breakpoints.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Secure Video Player Integration and Customization",
+            "description": "Integrate a secure video player with DRM support, custom controls, and prevention of unauthorized downloads.",
+            "dependencies": [
+              1
+            ],
+            "details": "Research and select appropriate video player library with DRM support. Implement custom player controls (play/pause, volume, playback speed, fullscreen). Configure video streaming with adaptive bitrate. Add watermarking capabilities if needed. Implement measures to prevent screen recording and unauthorized downloads. Ensure cross-browser compatibility and responsive design for different screen sizes.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Progress Tracking and Persistence",
+            "description": "Implement functionality to track and persist user progress through course content.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create database schema for storing user progress data. Implement API endpoints for saving and retrieving progress. Add client-side logic to track video watch progress (percentage completed). Implement auto-resume functionality to continue from last watched position. Create visual indicators for completed, in-progress, and unwatched lessons. Ensure progress syncs across devices and persists between sessions.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Course Navigation and Lesson Sequencing",
+            "description": "Implement navigation controls for moving between lessons and enforcing prerequisite requirements.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Create next/previous lesson navigation controls. Implement logic for sequential progression through course content. Add prerequisite checking to ensure lessons are taken in proper order if required. Create breadcrumb navigation for course hierarchy. Implement keyboard shortcuts for navigation. Add completion requirements (e.g., watching 90% of video) before allowing progression to next lesson.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Access Control for Enrolled vs. Non-Enrolled Users",
+            "description": "Implement access control mechanisms to restrict course content to enrolled users only.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Create authentication middleware to verify user enrollment status. Implement server-side validation for all content requests. Add client-side UI elements showing enrollment status and purchase options for non-enrolled users. Create preview functionality for limited content access to non-enrolled users. Implement secure token-based authentication for video streams. Add expiration and refresh mechanisms for access tokens.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Develop User Dashboard",
+        "description": "Create the user dashboard showing enrolled courses, progress tracking, and account settings for students.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          5
+        ],
+        "priority": "medium",
+        "details": "1. Design and implement dashboard layout using shadcn/ui components:\n   - Sidebar navigation\n   - Enrolled courses grid/list\n   - Progress overview section\n   - Account settings section\n2. Create enrolled courses component:\n   - Course cards with progress indicators using shadcn/ui Card\n   - Continue learning button that takes user to last watched lesson\n   - Sort and filter options\n3. Implement progress visualization:\n   - Progress bars for each course using shadcn/ui Progress component\n   - Completion statistics\n   - Recently watched lessons\n4. Create account settings page:\n   - Profile information update form using shadcn/ui Form components\n   - Password change form\n   - Notification preferences\n   - Payment history\n5. Implement API endpoints for dashboard data:\n```javascript\n// pages/api/user/dashboard.js\nimport { supabase } from '../../../utils/supabase-client';\nimport { getUser } from '../../../utils/auth';\n\nexport default async function handler(req, res) {\n  const user = await getUser(req);\n  \n  if (!user) {\n    return res.status(401).json({ error: 'Unauthorized' });\n  }\n  \n  // Get enrolled courses with progress\n  const { data: enrollments, error } = await supabase\n    .from('enrollments')\n    .select(`\n      *,\n      courses(*),\n      progress:progress(count)\n    `)\n    .eq('user_id', user.id);\n  \n  if (error) {\n    return res.status(500).json({ error: error.message });\n  }\n  \n  // Process data to calculate progress percentages\n  const processedData = enrollments.map(enrollment => {\n    // Calculate progress percentage logic\n    return {\n      ...enrollment,\n      progressPercentage: calculateProgress(enrollment)\n    };\n  });\n  \n  return res.status(200).json(processedData);\n}\n```",
+        "testStrategy": "1. Test dashboard loading with multiple enrolled courses\n2. Verify progress calculations are accurate\n3. Test account settings updates\n4. Verify 'continue learning' takes user to correct lesson\n5. Test responsive design on different screen sizes\n6. Verify sorting and filtering of enrolled courses\n7. Test navigation between dashboard sections\n8. Verify payment history displays correctly",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Dashboard Layout and Navigation Implementation",
+            "description": "Design and implement the core dashboard layout with responsive navigation elements",
+            "dependencies": [],
+            "details": "Create the main dashboard structure with a sidebar navigation, header, and content area. Implement responsive design for all screen sizes. Include navigation links to all dashboard sections (courses, progress, settings). Ensure accessibility compliance and implement navigation state management.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Enrolled Courses Display with Progress Indicators",
+            "description": "Develop the enrolled courses section showing all user courses with progress tracking",
+            "dependencies": [
+              1
+            ],
+            "details": "Query the database to fetch user enrollment data. Design and implement course cards showing thumbnail, title, description, and completion percentage. Add filtering and sorting options. Implement progress indicators (progress bars, completion badges) for each course. Ensure proper handling of different course states (not started, in progress, completed).",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Progress Visualization and Statistics Implementation",
+            "description": "Create data visualizations and statistics for user learning progress",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement charts and graphs showing overall learning progress across all courses. Create time-based visualizations (weekly/monthly activity). Add achievement statistics and milestone tracking. Develop a summary section with key metrics (courses completed, total learning hours, etc.). Ensure all visualizations are interactive and responsive.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Account Settings and Profile Management",
+            "description": "Develop the user profile and account settings functionality",
+            "dependencies": [
+              1
+            ],
+            "details": "Create profile editing interface with avatar upload capability. Implement account settings forms (notification preferences, privacy settings, password change). Add email and notification management. Develop session management and security settings. Ensure proper validation and error handling for all form submissions. Implement success/error feedback mechanisms.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Implement Admin Panel",
+        "description": "Create the admin panel with user management, course management, and analytics functionality for administrators and course creators.",
+        "status": "pending",
+        "dependencies": [
+          2,
+          3
+        ],
+        "priority": "medium",
+        "details": "1. Design and implement admin panel layout using shadcn/ui components:\n   - Admin sidebar navigation\n   - Dashboard overview with key metrics\n   - User management section\n   - Course management section\n   - Analytics section\n2. Implement user management features:\n   - User list with search and filter using shadcn/ui Table component\n   - User detail view\n   - Role management with shadcn/ui Select component\n   - Account status controls\n3. Create course management tools:\n   - Course creation form using shadcn/ui Form components\n   - Curriculum builder with drag-and-drop sections/lessons\n   - Video upload integration\n   - Course settings and pricing\n   - Publishing controls\n4. Implement analytics dashboard:\n   - Enrollment statistics\n   - Revenue metrics\n   - User engagement data\n   - Course performance metrics\n5. Add role-based access control:\n   - Admin access to all features\n   - Creator access limited to own courses\n6. Create course builder interface:\n```javascript\n// components/admin/CourseBuilder.jsx\nimport { useState, useEffect } from 'react';\nimport { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';\nimport { supabase } from '../../utils/supabase-client';\nimport { Button } from '../../components/ui/button';\nimport { Card } from '../../components/ui/card';\nimport { Input } from '../../components/ui/input';\n\nexport default function CourseBuilder({ courseId }) {\n  const [sections, setSections] = useState([]);\n  const [lessons, setLessons] = useState([]);\n  \n  // Load course structure\n  useEffect(() => {\n    // Fetch sections and lessons\n  }, [courseId]);\n  \n  // Handle drag and drop reordering\n  const handleDragEnd = (result) => {\n    // Update order in state and database\n  };\n  \n  return (\n    <DragDropContext onDragEnd={handleDragEnd}>\n      <div className=\"course-builder\">\n        {/* Section and lesson builder UI using shadcn/ui components */}\n      </div>\n    </DragDropContext>\n  );\n}\n```",
+        "testStrategy": "1. Test role-based access control for admin features\n2. Verify course creation and editing functionality\n3. Test user management features\n4. Verify analytics data is accurate\n5. Test curriculum builder with drag-and-drop reordering\n6. Verify video upload and processing\n7. Test course publishing workflow\n8. Verify admin dashboard metrics are calculated correctly",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design and implement admin panel layout and navigation",
+            "description": "Create the core structure, layout, and navigation components for the admin panel interface.",
+            "dependencies": [],
+            "details": "Design a responsive admin dashboard layout with sidebar navigation, header with user profile, and main content area. Implement navigation components for all major sections (users, courses, analytics, settings). Create breadcrumb navigation for deep linking. Ensure mobile responsiveness and accessibility compliance. Use consistent styling that matches the platform's design system.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Develop user management features",
+            "description": "Implement comprehensive user management functionality for administrators.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create interfaces for viewing, searching, and filtering user lists. Implement user detail views with profile information, course enrollments, and activity history. Build user creation, editing, and deletion workflows. Add bulk user operations (import/export, batch status changes). Implement user role assignment and permission management. Create email communication tools for contacting users.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Build course management and curriculum builder",
+            "description": "Create tools for course creation, management, and curriculum building with drag-and-drop functionality.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement course listing, creation, editing, and publishing workflows. Develop a drag-and-drop curriculum builder for organizing modules and lessons. Create interfaces for managing course media, attachments, and resources. Implement course settings for pricing, enrollment options, and visibility. Add preview functionality to test course appearance. Build course duplication and templating features.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement analytics dashboard and reporting",
+            "description": "Develop data visualization and reporting tools for platform metrics and insights.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Create dashboard overview with key performance indicators. Implement user engagement analytics (registrations, active users, retention). Build course performance metrics (enrollments, completion rates, ratings). Develop revenue and financial reporting tools. Create custom report builder with export options. Implement data filtering by date ranges and categories. Add automated report scheduling functionality.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement role-based access control system",
+            "description": "Create a permission system with differentiated access levels for administrators and content creators.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Define permission sets for different admin roles (super admin, content creator, support staff). Implement role assignment and management interfaces. Create permission checks throughout the admin interface. Build a role hierarchy system with inheritance. Implement audit logging for admin actions. Create documentation for permission structures. Test and verify access restrictions across all admin panel features.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Integrate Stripe Payment System",
+        "description": "Implement Stripe integration for course purchases, including payment processing, purchase confirmation, and access control for paid content.",
+        "status": "pending",
+        "dependencies": [
+          2,
+          3,
+          5
+        ],
+        "priority": "high",
+        "details": "1. Set up Stripe account and API keys\n2. Install Stripe libraries: `npm install stripe @stripe/stripe-js`\n3. Create server-side API for payment processing:\n```javascript\n// pages/api/checkout/session.js\nimport Stripe from 'stripe';\nimport { supabase } from '../../../utils/supabase-client';\nimport { getUser } from '../../../utils/auth';\n\nconst stripe = new Stripe(process.env.STRIPE_SECRET_KEY);\n\nexport default async function handler(req, res) {\n  if (req.method !== 'POST') {\n    return res.status(405).json({ error: 'Method not allowed' });\n  }\n  \n  const user = await getUser(req);\n  if (!user) {\n    return res.status(401).json({ error: 'Unauthorized' });\n  }\n  \n  const { courseId } = req.body;\n  \n  // Get course details\n  const { data: course, error } = await supabase\n    .from('courses')\n    .select('*')\n    .eq('id', courseId)\n    .single();\n  \n  if (error || !course) {\n    return res.status(404).json({ error: 'Course not found' });\n  }\n  \n  // Create Stripe checkout session\n  try {\n    const session = await stripe.checkout.sessions.create({\n      payment_method_types: ['card'],\n      line_items: [\n        {\n          price_data: {\n            currency: 'usd',\n            product_data: {\n              name: course.title,\n              description: course.description,\n            },\n            unit_amount: Math.round(course.price * 100),\n          },\n          quantity: 1,\n        },\n      ],\n      mode: 'payment',\n      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/courses/${courseId}?success=true`,\n      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/courses/${courseId}?canceled=true`,\n      metadata: {\n        courseId,\n        userId: user.id,\n      },\n    });\n    \n    return res.status(200).json({ sessionId: session.id });\n  } catch (err) {\n    return res.status(500).json({ error: err.message });\n  }\n}\n```\n4. Implement client-side checkout button using shadcn/ui Button component:\n```javascript\nimport { loadStripe } from '@stripe/stripe-js';\nimport { Button } from '../components/ui/button';\n\nconst stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);\n\nexport default function CheckoutButton({ courseId }) {\n  const handleCheckout = async () => {\n    const stripe = await stripePromise;\n    \n    // Create checkout session\n    const response = await fetch('/api/checkout/session', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ courseId }),\n    });\n    \n    const { sessionId } = await response.json();\n    \n    // Redirect to Stripe checkout\n    await stripe.redirectToCheckout({ sessionId });\n  };\n  \n  return (\n    <Button onClick={handleCheckout} className=\"w-full\">Enroll Now</Button>\n  );\n}\n```\n5. Create webhook handler for payment confirmation:\n```javascript\n// pages/api/webhooks/stripe.js\nimport Stripe from 'stripe';\nimport { buffer } from 'micro';\nimport { supabase } from '../../../utils/supabase-client';\n\nexport const config = {\n  api: {\n    bodyParser: false,\n  },\n};\n\nconst stripe = new Stripe(process.env.STRIPE_SECRET_KEY);\n\nexport default async function handler(req, res) {\n  if (req.method !== 'POST') {\n    return res.status(405).json({ error: 'Method not allowed' });\n  }\n  \n  const buf = await buffer(req);\n  const sig = req.headers['stripe-signature'];\n  \n  let event;\n  \n  try {\n    event = stripe.webhooks.constructEvent(\n      buf.toString(),\n      sig,\n      process.env.STRIPE_WEBHOOK_SECRET\n    );\n  } catch (err) {\n    return res.status(400).json({ error: `Webhook Error: ${err.message}` });\n  }\n  \n  if (event.type === 'checkout.session.completed') {\n    const session = event.data.object;\n    \n    // Create enrollment record\n    const { error } = await supabase.from('enrollments').insert({\n      user_id: session.metadata.userId,\n      course_id: session.metadata.courseId,\n      purchased_at: new Date(),\n      amount_paid: session.amount_total / 100,\n    });\n    \n    if (error) {\n      console.error('Error creating enrollment:', error);\n      return res.status(500).json({ error: 'Failed to create enrollment' });\n    }\n  }\n  \n  return res.status(200).json({ received: true });\n}\n```\n6. Implement purchase confirmation emails\n7. Create access control middleware for paid content\n8. Add payment history to user dashboard",
+        "testStrategy": "1. Test checkout flow with test cards in Stripe test mode\n2. Verify webhook correctly creates enrollment records\n3. Test access control for paid vs free courses\n4. Verify purchase confirmation emails are sent\n5. Test error handling for failed payments\n6. Verify payment history displays correctly in user dashboard\n7. Test checkout on different devices and browsers\n8. Verify Stripe integration works in both development and production environments",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Stripe Account and API Setup",
+            "description": "Create and configure a Stripe account, obtain API keys, and set up the development environment for integration.",
+            "dependencies": [],
+            "details": "1. Create a Stripe account\n2. Set up test and production API keys\n3. Install Stripe SDK in the project\n4. Configure environment variables for API keys\n5. Set up Stripe test mode for development\n6. Document the integration architecture",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Server-side Payment Processing API",
+            "description": "Develop backend endpoints to handle payment intent creation, processing, and validation.",
+            "dependencies": [
+              1
+            ],
+            "details": "1. Create endpoint for generating payment intents\n2. Implement price calculation logic\n3. Set up proper authentication and authorization\n4. Add error handling for payment failures\n5. Create test cases for payment processing\n6. Implement logging for payment attempts",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Client-side Checkout Implementation",
+            "description": "Build the frontend components for the payment form, checkout process, and integration with Stripe Elements.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "1. Implement Stripe Elements UI components\n2. Create checkout form with validation\n3. Handle payment submission and processing states\n4. Implement error handling and user feedback\n5. Add loading states during payment processing\n6. Test across different browsers and devices",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Webhook Handling for Payment Confirmation",
+            "description": "Set up and implement Stripe webhooks to handle asynchronous payment events and confirmations.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "1. Configure webhook endpoints in Stripe dashboard\n2. Implement webhook handler in the backend\n3. Verify webhook signatures for security\n4. Handle various payment event types\n5. Implement idempotency to prevent duplicate processing\n6. Set up logging for webhook events",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Enrollment Creation After Successful Payment",
+            "description": "Implement the system to create user enrollments automatically after payment confirmation.",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "1. Create enrollment record in database\n2. Link enrollment to payment information\n3. Implement transaction handling to ensure data consistency\n4. Send confirmation emails to users\n5. Handle edge cases like partial payments or refunds\n6. Test the entire payment-to-enrollment flow",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Payment History and Receipt Functionality",
+            "description": "Develop features to display payment history, generate receipts, and allow users to access their payment information.",
+            "dependencies": [
+              2,
+              5
+            ],
+            "details": "1. Create database schema for payment history\n2. Implement API endpoints for retrieving payment history\n3. Build UI components to display payment information\n4. Create PDF receipt generation functionality\n5. Implement email delivery of receipts\n6. Add filtering and search capabilities for payment history",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Implement UI/UX Enhancements and Responsive Design",
+        "description": "Enhance the user interface with responsive design, shadcn/ui components, and potential dark/light mode toggle to ensure a seamless experience across all devices.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          4,
+          5,
+          6
+        ],
+        "priority": "medium",
+        "details": "1. Leverage shadcn/ui component library:\n   - Use Button variants (primary, secondary, ghost)\n   - Implement Form elements (inputs, selects, checkboxes)\n   - Utilize Card and container components\n   - Apply Navigation components\n   - Use Modal and dialog components\n2. Implement responsive design:\n   - Mobile-first approach with CSS Grid and Flexbox\n   - Breakpoints for different device sizes\n   - Touch-friendly controls for mobile\n   - Optimized layouts for different screen sizes\n3. Add dark/light mode toggle using shadcn/ui's theming capabilities:\n   - Create theme context and provider\n   - Design color schemes for both modes\n   - Add toggle component\n   - Persist user preference\n```javascript\n// contexts/theme-context.js\nimport { createContext, useContext, useEffect, useState } from 'react';\nimport { useTheme } from 'next-themes';\n\nconst ThemeContext = createContext();\n\nexport function ThemeProvider({ children }) {\n  const { theme, setTheme } = useTheme();\n  \n  const toggleTheme = () => {\n    setTheme(theme === 'light' ? 'dark' : 'light');\n  };\n  \n  return (\n    <ThemeContext.Provider value={{ theme, toggleTheme }}>\n      {children}\n    </ThemeContext.Provider>\n  );\n}\n\nexport const useAppTheme = () => {\n  const context = useContext(ThemeContext);\n  if (context === undefined) {\n    throw new Error('useAppTheme must be used within a ThemeProvider');\n  }\n  return context;\n};\n```\n4. Implement animations and transitions:\n   - Page transitions\n   - Loading states\n   - Hover and focus effects\n   - Micro-interactions\n5. Add custom branding capabilities:\n   - Theme customization options\n   - Logo placement\n   - Color scheme customization\n6. Implement accessibility features:\n   - Proper semantic HTML\n   - ARIA attributes\n   - Keyboard navigation\n   - Screen reader compatibility",
+        "testStrategy": "1. Test responsive design on multiple devices and screen sizes\n2. Verify dark/light mode toggle works and persists\n3. Test accessibility with screen readers and keyboard navigation\n4. Verify animations and transitions work smoothly\n5. Test custom branding options\n6. Verify shadcn/ui component consistency across the application\n7. Test performance on low-end devices\n8. Conduct usability testing with real users",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Component Library",
+            "description": "Create a reusable component library with standardized UI elements",
+            "dependencies": [],
+            "details": "Design and implement a comprehensive component library including buttons, forms, cards, navigation elements, and modals. Document usage guidelines, props, and variations for each component. Ensure components follow design system principles with consistent styling and behavior.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Responsive Design",
+            "description": "Ensure all UI components and layouts adapt to different screen sizes",
+            "dependencies": [
+              1
+            ],
+            "details": "Create responsive breakpoints for mobile, tablet, and desktop views. Implement fluid layouts and flexible grids. Test and optimize components across various devices and screen resolutions. Document responsive behavior guidelines for developers.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Develop Dark/Light Mode Theming",
+            "description": "Create theme switching functionality with appropriate color schemes",
+            "dependencies": [
+              1
+            ],
+            "details": "Define color variables and tokens for both dark and light themes. Implement theme switching mechanism with user preference persistence. Ensure proper contrast ratios in both themes. Test all components in both modes for visual consistency and readability.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Add Animation and Transition Effects",
+            "description": "Implement subtle animations to enhance user experience",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Design and implement page transitions, hover effects, loading states, and micro-interactions. Ensure animations are performant and don't impact application speed. Create animation guidelines for consistent implementation across the application. Provide options to reduce motion for users with vestibular disorders.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Improve Accessibility Compliance",
+            "description": "Ensure the application meets WCAG 2.1 AA standards",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Audit existing components for accessibility issues. Implement proper semantic HTML, ARIA attributes, keyboard navigation, and focus management. Test with screen readers and other assistive technologies. Create accessibility documentation and guidelines for developers. Implement automated accessibility testing in the CI/CD pipeline.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Implement Analytics and Performance Optimization",
+        "description": "Set up analytics tracking, reporting features, and performance optimization to ensure the platform runs efficiently and provides valuable insights.",
+        "status": "pending",
+        "dependencies": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "priority": "medium",
+        "details": "1. Implement analytics tracking:\n   - Set up Google Analytics or similar service\n   - Track page views and user journeys\n   - Monitor course engagement metrics\n   - Track conversion rates for course purchases\n2. Create admin analytics dashboard using shadcn/ui components:\n   - Revenue reports with shadcn/ui Card and charts\n   - User growth metrics\n   - Course popularity statistics\n   - Engagement metrics (completion rates, watch time)\n3. Implement performance optimization:\n   - Code splitting and lazy loading\n   - Image optimization with next/image\n   - Server-side rendering for critical pages\n   - Static generation where appropriate\n   - API route optimization\n4. Set up monitoring and error tracking:\n   - Implement error boundary components\n   - Set up logging service (e.g., Sentry)\n   - Monitor API performance\n   - Track and alert on critical errors\n5. Implement database query optimization:\n   - Review and optimize complex queries\n   - Add appropriate indexes\n   - Implement caching strategies\n   - Set up database monitoring\n6. Create performance testing suite:\n```javascript\n// scripts/performance-test.js\nconst lighthouse = require('lighthouse');\nconst chromeLauncher = require('chrome-launcher');\nconst { writeFileSync } = require('fs');\n\nasync function runLighthouse(url) {\n  const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless'] });\n  const options = {\n    logLevel: 'info',\n    output: 'html',\n    port: chrome.port,\n  };\n  \n  const results = await lighthouse(url, options);\n  writeFileSync('lighthouse-report.html', results.report);\n  \n  await chrome.kill();\n  \n  return results.lhr;\n}\n\nasync function main() {\n  const urls = [\n    'http://localhost:3000',\n    'http://localhost:3000/courses',\n    'http://localhost:3000/dashboard',\n  ];\n  \n  for (const url of urls) {\n    console.log(`Testing ${url}...`);\n    const results = await runLighthouse(url);\n    console.log('Performance score:', results.categories.performance.score * 100);\n    console.log('Accessibility score:', results.categories.accessibility.score * 100);\n    console.log('Best practices score:', results.categories['best-practices'].score * 100);\n    console.log('SEO score:', results.categories.seo.score * 100);\n    console.log('------------------------------');\n  }\n}\n\nmain();\n```",
+        "testStrategy": "1. Verify analytics tracking captures all important user interactions\n2. Test admin analytics dashboard with sample data\n3. Run Lighthouse performance tests on key pages\n4. Verify error tracking captures and reports issues\n5. Test performance under load with simulated traffic\n6. Verify database queries are optimized with EXPLAIN\n7. Test caching strategies effectiveness\n8. Verify monitoring alerts work correctly",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Analytics Tracking System",
+            "description": "Set up comprehensive analytics tracking throughout the application to capture user behavior and system performance metrics.",
+            "dependencies": [],
+            "details": "Integrate a third-party analytics service (like Google Analytics or Mixpanel). Implement event tracking for key user actions including page views, feature usage, conversion points, and error occurrences. Create a data layer to standardize event tracking. Document all tracked events and their parameters for future reference.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Develop Admin Analytics Dashboard",
+            "description": "Create a comprehensive dashboard for administrators to visualize and analyze user behavior and application performance data.",
+            "dependencies": [
+              1
+            ],
+            "details": "Design dashboard wireframes with key metrics and visualizations. Implement data visualization components (charts, graphs, tables). Create filters for time periods and user segments. Add export functionality for reports. Ensure the dashboard is responsive and performs well with large datasets.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Optimize Frontend Performance",
+            "description": "Improve the loading speed and runtime performance of the frontend application.",
+            "dependencies": [],
+            "details": "Conduct performance audit using Lighthouse or WebPageTest. Implement code splitting and lazy loading for components. Optimize asset delivery (images, CSS, JS). Implement caching strategies. Reduce bundle size through tree shaking and dependency optimization. Measure and improve Core Web Vitals (LCP, FID, CLS).",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Optimize Backend and Database Performance",
+            "description": "Improve API response times and database query performance to enhance overall application speed.",
+            "dependencies": [],
+            "details": "Profile API endpoints to identify slow responses. Optimize database queries and add appropriate indexes. Implement caching for frequently accessed data. Review and optimize ORM usage. Consider implementing database read replicas for heavy read operations. Document performance improvements and benchmarks.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Set Up Monitoring and Error Tracking",
+            "description": "Implement comprehensive monitoring and error tracking systems to proactively identify and resolve issues.",
+            "dependencies": [
+              1,
+              3,
+              4
+            ],
+            "details": "Integrate error tracking service (like Sentry or Rollbar). Set up application performance monitoring (APM) tools. Configure alerting for critical errors and performance thresholds. Implement logging for important system events. Create a process for error triage and resolution. Set up uptime monitoring for critical services.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-28T17:43:47.898Z",
+      "updated": "2025-06-28T17:43:47.898Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

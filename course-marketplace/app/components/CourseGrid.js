@@ -1,6 +1,6 @@
 "use client";
 
-import CourseCard from '@/app/components/CourseCard';
+import CourseCard from "@/app/components/CourseCard";
 
 export default function CourseGrid({
   title = "Featured Courses",
@@ -66,7 +66,7 @@ export default function CourseGrid({
       category: "Business",
     },
   ],
-  backgroundClass = "",
+  backgroundClass = "bg-white dark:bg-gray-950",
   gridCols = "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
   onEnrollClick = null,
   onCourseClick = null,
@@ -92,7 +92,11 @@ export default function CourseGrid({
   return (
     <section className={`py-16 ${backgroundClass}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {title && <h2 className="text-3xl font-bold text-center mb-12">{title}</h2>}
+        {title && (
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-gray-100">
+            {title}
+          </h2>
+        )}
         <div className={`grid ${gridCols} gap-8`}>
           {courses.map((course, index) => (
             <CourseCard

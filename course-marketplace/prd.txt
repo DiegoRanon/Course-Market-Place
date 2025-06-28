@@ -1,0 +1,174 @@
+# Technical Architecture
+
+## Frontend
+- **Framework**: Next.js (React-based)
+- **Key Components**:
+  - Landing Page (Hero section, Course categories, Testimonials)
+  - Course Marketplace (Browse/search functionality, Filters, Course previews)
+  - Course Page (Curriculum outline, Video player, Progress tracking)
+  - User Dashboard (Enrolled courses, Progress tracking, Account settings)
+  - Admin Panel (User management, Course management, Analytics)
+
+## Backend & Database
+- **Backend**: Supabase for backend-as-a-service
+- **Database**: PostgreSQL (via Supabase)
+- **Authentication**: Supabase Auth
+- **Data Models**:
+  - Users (Admin, Creator, Student roles)
+  - Courses (metadata, curriculum structure, pricing)
+  - Enrollments (user-course relationships)
+  - Progress tracking (user course completion data)
+
+## Integrations
+- **Payments**: Stripe integration for course purchases
+- **Video Hosting**: Secure video streaming solution
+- **Hosting**: Vercel for frontend deployment
+
+## Infrastructure
+- Mobile responsive design
+- Modern UI with potential dark/light mode toggle
+- Custom branding capabilities
+
+# Development Roadmap
+
+## Phase 1: MVP (Minimum Viable Product)
+- **User Authentication System**
+  - Role-based signup/login (Admin, Creator, Student)
+  - Account management
+  - Email confirmation
+
+- **Core Course Marketplace**
+  - Landing page with featured courses
+  - Basic course browsing and filtering
+  - Individual course pages with curriculum display
+
+- **Course Consumption**
+  - Video player integration
+  - Basic progress tracking
+  - Simple user dashboard
+
+- **Admin Functionality**
+  - Course upload and management
+  - User management
+  - Basic analytics
+
+- **Payment Processing**
+  - Stripe integration
+  - Purchase confirmation
+  - Access control for paid content
+
+## Phase 2: Enhanced Features
+- **Advanced Course Features**
+  - Quizzes/Assessments
+  - Certificate generation
+  - More sophisticated progress tracking
+
+- **Expanded Admin Capabilities**
+  - More detailed analytics
+  - Enhanced CMS functionality
+  - Advanced user management
+
+- **User Experience Improvements**
+  - Enhanced UI/UX refinements
+  - Personalized recommendations
+  - Saved courses and favorites
+
+## Phase 3: Platform Growth
+- **Community Features**
+  - Comments and discussion forums
+  - User reviews and ratings
+  - Social sharing capabilities
+
+- **Advanced Platform Features**
+  - Live streaming capabilities
+  - Gamification (badges, leaderboards)
+  - Mobile app (React Native)
+
+# Logical Dependency Chain
+
+## Foundation (Build First)
+1. **User Authentication System**
+   - Setup Supabase authentication
+   - Implement role-based access control
+   - Create user profiles
+
+2. **Basic Frontend Structure**
+   - Next.js setup with routing
+   - Core page templates
+   - Responsive design implementation
+
+3. **Database Schema**
+   - User tables with role definitions
+   - Course content structure
+   - Enrollment and progress tracking models
+
+## Core Functionality
+4. **Course Browsing Experience**
+   - Landing page implementation
+   - Course cards and grid layout
+   - Filtering and search functionality
+
+5. **Course Viewing System**
+   - Video player integration
+   - Curriculum navigation
+   - Progress saving mechanism
+
+6. **Admin Interface**
+   - Course upload and management tools
+   - User management dashboard
+   - Basic analytics display
+
+## Monetization & Growth
+7. **Payment System**
+   - Stripe integration
+   - Purchase flow
+   - Receipt and confirmation emails
+
+8. **User Dashboard**
+   - Enrolled courses display
+   - Progress visualization
+   - Account settings
+
+9. **Analytics & Optimization**
+   - Enhanced tracking
+   - Reporting features
+   - Performance optimization
+
+# Risks and Mitigations
+
+## Technical Challenges
+- **Risk**: Video streaming performance issues
+  **Mitigation**: Implement adaptive streaming and CDN integration
+
+- **Risk**: Database scaling with user growth
+  **Mitigation**: Implement proper indexing and query optimization; plan for potential sharding
+
+- **Risk**: Authentication security concerns
+  **Mitigation**: Leverage Supabase's secure auth system; implement proper role-based access controls
+
+## MVP Scope
+- **Risk**: Feature creep delaying launch
+  **Mitigation**: Strictly prioritize core functionalities; maintain separate backlog for post-MVP enhancements
+
+- **Risk**: Overbuilding admin features before validating core user experience
+  **Mitigation**: Focus on student experience first, with minimal viable admin tools
+
+## Resource Constraints
+- **Risk**: Frontend and backend integration challenges
+  **Mitigation**: Clear API contracts and documentation; regular integration testing
+
+- **Risk**: UX consistency across different user roles and journeys
+  **Mitigation**: Establish component library and design system early
+
+# Appendix
+
+## Target Audience Details
+- Aspiring professionals seeking affordable and structured skill development
+- Small businesses looking to train staff with curated content
+- Individuals preferring curated, high-quality content over user-generated variety
+
+## Design Requirements
+- Clean, modern UI inspired by sites like Teachable and Skillshare
+- Mobile responsive design for all key pages
+- Custom branding capabilities (logo, colors, fonts)
+- Potential dark/light mode toggle 

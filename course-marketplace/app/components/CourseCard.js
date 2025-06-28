@@ -1,17 +1,17 @@
 "use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
+import Link from "next/link";
+import Image from "next/image";
 
-export default function CourseCard({ 
-  course, 
-  showCategory = true, 
-  showPrice = true, 
-  showRating = true, 
-  linkPath = "/courses", 
-  showButton = false, 
+export default function CourseCard({
+  course,
+  showCategory = true,
+  showPrice = true,
+  showRating = true,
+  linkPath = "/courses",
+  showButton = false,
   buttonText = "Enroll Now",
-  onButtonClick = null
+  onButtonClick = null,
 }) {
   // Custom number formatting function to avoid hydration mismatch
   const formatNumber = (num) => {
@@ -23,7 +23,9 @@ export default function CourseCard({
       <svg
         key={i}
         className={`h-4 w-4 ${
-          i < Math.floor(rating) ? "fill-yellow-400" : "fill-gray-300"
+          i < Math.floor(rating)
+            ? "fill-yellow-400"
+            : "fill-gray-300 dark:fill-gray-600"
         }`}
         viewBox="0 0 20 20"
       >
@@ -31,14 +33,14 @@ export default function CourseCard({
       </svg>
     ));
   };
-  
+
   const handleButtonClick = (e) => {
     e.preventDefault();
     if (onButtonClick) {
       onButtonClick(course);
     }
   };
-  
+
   const courseContent = (
     <>
       <div className="relative h-48">
@@ -61,67 +63,69 @@ export default function CourseCard({
             )}
           </div>
         ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            <span className="text-gray-400">No image</span>
+          <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+            <span className="text-gray-400 dark:text-gray-500">No image</span>
           </div>
         )}
-        
+
         {showCategory && course.category && (
           <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-sm font-medium">
             {course.category}
           </div>
         )}
       </div>
-      
+
       <div className="p-5 flex-grow flex flex-col">
-        <h3 className="font-bold text-xl text-gray-900 mb-2">
+        <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-2">
           {course.title}
         </h3>
-        
+
         {course.instructor && (
-          <p className="text-gray-600 text-sm mb-2">
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
             by {course.instructor}
           </p>
         )}
-        
+
         {showRating && course.rating && (
           <div className="flex items-center mb-2">
             <div className="flex text-yellow-400">
               {renderStars(course.rating)}
             </div>
-            <span className="ml-2 text-sm text-gray-600">
+            <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
               {course.rating}
             </span>
             {course.students && (
-              <span className="ml-2 text-sm text-gray-500">
+              <span className="ml-2 text-sm text-gray-500 dark:text-gray-500">
                 ({formatNumber(course.students)})
               </span>
             )}
           </div>
         )}
-        
-        <p className="text-gray-600 line-clamp-2 mb-4">
+
+        <p className="text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">
           {course.short_description || course.description}
         </p>
-        
+
         <div className="mt-auto flex items-center justify-between">
           {showPrice && (
             <div className="flex items-center">
-              <span className="text-lg font-bold text-purple-600">
-                {course.price ? `$${parseFloat(course.price).toFixed(2)}` : 'Free'}
+              <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                {course.price
+                  ? `$${parseFloat(course.price).toFixed(2)}`
+                  : "Free"}
               </span>
               {course.originalPrice && (
-                <span className="ml-2 text-gray-500 line-through">
+                <span className="ml-2 text-gray-500 dark:text-gray-500 line-through">
                   ${parseFloat(course.originalPrice).toFixed(2)}
                 </span>
               )}
             </div>
           )}
-          
+
           {showButton && (
             <button
               onClick={handleButtonClick}
-              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors"
+              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 dark:hover:bg-purple-800 transition-colors"
             >
               {buttonText}
             </button>
@@ -134,13 +138,13 @@ export default function CourseCard({
   return course.id && !showButton ? (
     <Link
       href={`${linkPath}/${course.id}`}
-      className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-transform hover:shadow-lg hover:-translate-y-1"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col transition-transform hover:shadow-lg hover:-translate-y-1"
     >
       {courseContent}
     </Link>
   ) : (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-xl transition-shadow">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-xl transition-shadow">
       {courseContent}
     </div>
   );
-} 
+}
