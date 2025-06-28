@@ -13,7 +13,6 @@ export default function Navigation() {
   const dropdownRef = useRef(null);
   const router = useRouter();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -21,7 +20,6 @@ export default function Navigation() {
       }
     };
 
-    // Close dropdown when pressing escape key
     const handleEscapeKey = (event) => {
       if (event.key === "Escape") {
         setIsProfileDropdownOpen(false);
@@ -37,10 +35,8 @@ export default function Navigation() {
     };
   }, []);
 
-  // Get display name for the user
   const getDisplayName = () => {
     if (!user) return "";
-
     if (profile) {
       if (profile.full_name) return profile.full_name;
       if (profile.first_name && profile.last_name) {
@@ -48,7 +44,6 @@ export default function Navigation() {
       }
       if (profile.first_name) return profile.first_name;
     }
-
     return user.email;
   };
 
@@ -58,13 +53,13 @@ export default function Navigation() {
     if (isSigningOut) return; // Prevent multiple clicks
 
     try {
-      setIsSigningOut(true); // Set loading state
+      setIsSigningOut(true);
       await signOut();
       setIsProfileDropdownOpen(false);
       router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
-      setIsSigningOut(false); // Reset loading state on error
+      setIsSigningOut(false);
     }
   };
 
@@ -72,7 +67,6 @@ export default function Navigation() {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
   };
 
-  // Determine if user has admin role
   const userIsAdmin = profile?.role === "admin";
 
   // Determine if user has creator role
@@ -146,12 +140,20 @@ export default function Navigation() {
 
             {/* Only show Admin link in nav for admins */}
             {userIsAdmin && (
-              <Link
-                href="/admin"
-                className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
-              >
-                Admin
-              </Link>
+              <>
+                <Link
+                  href="/admin"
+                  className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
+                >
+                  Admin
+                </Link>
+                <Link
+                  href="/admin/upload"
+                  className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 font-medium transition-colors"
+                >
+                  Créer une vidéo
+                </Link>
+              </>
             )}
 
             <Link
@@ -168,12 +170,10 @@ export default function Navigation() {
             <ThemeToggle />
 
             {loading ? (
-              // Loading state
               <div className="animate-pulse">
                 <div className="h-8 w-20 bg-gray-200 rounded"></div>
               </div>
             ) : user ? (
-              // Authenticated user - Profile dropdown
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={toggleProfileDropdown}
@@ -202,11 +202,10 @@ export default function Navigation() {
                   </svg>
                 </button>
 
-                {/* Profile Dropdown */}
+                {/* Dropdown */}
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                     <div className="py-1">
-                      {/* User Info */}
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900">
                           {getDisplayName()}
@@ -219,7 +218,6 @@ export default function Navigation() {
                         )}
                       </div>
 
-                      {/* Navigation Links */}
                       <Link
                         href="/dashboard"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -236,15 +234,23 @@ export default function Navigation() {
                         Profile
                       </Link>
 
-                      {/* Role-specific links */}
                       {userIsAdmin && (
-                        <Link
-                          href="/admin"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          Admin Panel
-                        </Link>
+                        <>
+                          <Link
+                            href="/admin"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            Admin Panel
+                          </Link>
+                          <Link
+                            href="/admin/upload"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            Créer une vidéo
+                          </Link>
+                        </>
                       )}
 
                       {userIsCreator && (
@@ -257,7 +263,6 @@ export default function Navigation() {
                         </Link>
                       )}
 
-                      {/* Sign Out Button */}
                       <button
                         onClick={handleSignOut}
                         disabled={isSigningOut}
@@ -300,7 +305,6 @@ export default function Navigation() {
                 )}
               </div>
             ) : (
-              // Not authenticated - Login/Signup buttons
               <>
                 <Link
                   href="/login"
