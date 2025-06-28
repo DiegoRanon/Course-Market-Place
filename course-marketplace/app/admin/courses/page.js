@@ -154,7 +154,7 @@ export default function CreatorMyCourses() {
             <div className="flex justify-center items-center h-64">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                  You don't have any courses yet
+                  You dont have any courses yet
                 </h2>
                 <p className="text-gray-600 mb-6">
                   Courses are created by admins. Contact an administrator to have courses assigned to you.

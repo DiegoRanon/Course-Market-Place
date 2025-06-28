@@ -12,7 +12,6 @@ export default function Navigation() {
   const dropdownRef = useRef(null);
   const router = useRouter();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -20,7 +19,6 @@ export default function Navigation() {
       }
     };
 
-    // Close dropdown when pressing escape key
     const handleEscapeKey = (event) => {
       if (event.key === "Escape") {
         setIsProfileDropdownOpen(false);
@@ -36,10 +34,8 @@ export default function Navigation() {
     };
   }, []);
 
-  // Get display name for the user
   const getDisplayName = () => {
     if (!user) return "";
-
     if (profile) {
       if (profile.full_name) return profile.full_name;
       if (profile.first_name && profile.last_name) {
@@ -47,23 +43,21 @@ export default function Navigation() {
       }
       if (profile.first_name) return profile.first_name;
     }
-
     return user.email;
   };
 
   const handleSignOut = async (e) => {
-    e.preventDefault(); // Prevent default button behavior
-    
-    if (isSigningOut) return; // Prevent multiple clicks
-    
+    e.preventDefault();
+    if (isSigningOut) return;
+
     try {
-      setIsSigningOut(true); // Set loading state
+      setIsSigningOut(true);
       await signOut();
       setIsProfileDropdownOpen(false);
       router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
-      setIsSigningOut(false); // Reset loading state on error
+      setIsSigningOut(false);
     }
   };
 
@@ -71,10 +65,7 @@ export default function Navigation() {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
   };
 
-  // Determine if user has admin role
   const userIsAdmin = profile?.role === "admin";
-  
-  // Determine if user has creator role
   const userIsCreator = profile?.role === "creator" || userIsAdmin;
 
   return (
@@ -122,8 +113,7 @@ export default function Navigation() {
             >
               Courses
             </Link>
-            
-            {/* Show My Learning for authenticated users (all roles) */}
+
             {user && (
               <Link
                 href="/dashboard"
@@ -132,27 +122,33 @@ export default function Navigation() {
                 My Learning
               </Link>
             )}
-            
-                                  {/* Show My Courses link for creators who can view their course statistics */}
-                      {userIsCreator && (
-                        <Link
-                          href="/admin/courses"
-                          className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
-                        >
-                          My Courses
-                        </Link>
-                      )}
-            
-            {/* Only show Admin link in nav for admins */}
-            {userIsAdmin && (
+
+            {userIsCreator && (
               <Link
-                href="/admin"
+                href="/admin/courses"
                 className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
               >
-                Admin
+                My Courses
               </Link>
             )}
-            
+
+            {userIsAdmin && (
+              <>
+                <Link
+                  href="/admin"
+                  className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
+                >
+                  Admin
+                </Link>
+                <Link
+                  href="/admin/upload"
+                  className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 font-medium transition-colors"
+                >
+                  Créer une vidéo
+                </Link>
+              </>
+            )}
+
             <Link
               href="/contact"
               className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
@@ -164,12 +160,10 @@ export default function Navigation() {
           {/* Auth Section */}
           <div className="flex items-center space-x-4 ml-6 lg:ml-8">
             {loading ? (
-              // Loading state
               <div className="animate-pulse">
                 <div className="h-8 w-20 bg-gray-200 rounded"></div>
               </div>
             ) : user ? (
-              // Authenticated user - Profile dropdown
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={toggleProfileDropdown}
@@ -198,11 +192,10 @@ export default function Navigation() {
                   </svg>
                 </button>
 
-                {/* Profile Dropdown */}
+                {/* Dropdown */}
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                     <div className="py-1">
-                      {/* User Info */}
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900">
                           {getDisplayName()}
@@ -215,7 +208,6 @@ export default function Navigation() {
                         )}
                       </div>
 
-                      {/* Navigation Links */}
                       <Link
                         href="/dashboard"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -232,15 +224,23 @@ export default function Navigation() {
                         Profile
                       </Link>
 
-                      {/* Role-specific links */}
                       {userIsAdmin && (
-                        <Link
-                          href="/admin"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                        >
-                          Admin Panel
-                        </Link>
+                        <>
+                          <Link
+                            href="/admin"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            Admin Panel
+                          </Link>
+                          <Link
+                            href="/admin/upload"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            Créer une vidéo
+                          </Link>
+                        </>
                       )}
 
                       {userIsCreator && (
@@ -253,21 +253,36 @@ export default function Navigation() {
                         </Link>
                       )}
 
-                      {/* Sign Out Button */}
                       <button
                         onClick={handleSignOut}
                         disabled={isSigningOut}
                         className={`block w-full text-left px-4 py-2 text-sm ${
-                          isSigningOut 
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                          isSigningOut
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                             : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                         } transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
                       >
                         {isSigningOut ? (
                           <span className="flex items-center">
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <svg
+                              className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
                             </svg>
                             Signing out...
                           </span>
@@ -280,7 +295,6 @@ export default function Navigation() {
                 )}
               </div>
             ) : (
-              // Not authenticated - Login/Signup buttons
               <>
                 <Link
                   href="/login"
