@@ -6,7 +6,9 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import CourseCard from "../../app/components/CourseCard";
-import { LoadingState, ErrorState } from "../components/ui/index";
+// Import UI components directly
+import LoadingState from "../components/ui/LoadingState";
+import ErrorState from "../components/ui/ErrorState";
 import { supabase } from "../lib/supabase";
 
 export default function CoursesPage() {
@@ -24,19 +26,29 @@ export default function CoursesPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        // Fetch categories directly from the categories table
         const { data, error } = await supabase
-          .from("courses")
-          .select("category");
+          .from("categories")
+          .select("id, name");
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase query error:", error);
+          throw error;
+        }
 
-        // Extract unique categories
-        const uniqueCategories = [
-          ...new Set(data.map((item) => item.category).filter(Boolean)),
-        ];
-        setCategories(uniqueCategories);
+        if (!data || data.length === 0) {
+          console.warn("No categories found in the database");
+          setCategories([{ id: "general", name: "General" }]);
+          return;
+        }
+
+        // Store the full category objects to have access to both id and name
+        console.log("Fetched categories:", data);
+        setCategories(data);
       } catch (error) {
         console.error("Error fetching categories:", error);
+        // Provide fallback categories so the UI doesn't break
+        setCategories([{ id: "general", name: "General" }]);
       }
     };
 
@@ -44,14 +56,49 @@ export default function CoursesPage() {
   }, []);
 
   useEffect(() => {
+    // Skip fetching if categories aren't loaded yet and we need to filter by category
+    if (categoryParam && categories.length === 0) {
+      return;
+    }
+
     const fetchCourses = async () => {
       setLoading(true);
       try {
-        let query = supabase.from("courses").select("*");
+        // Join with categories to get category names
+        let query = supabase.from("courses").select(`
+            *,
+            categories:category_id (
+              name
+            )
+          `);
 
-        // Apply category filter
+        // Apply category filter - use the category ID
         if (categoryParam) {
-          query = query.eq("category", categoryParam);
+          try {
+            console.log(`Filtering courses by category: ${categoryParam}`);
+
+            // Find the category object that matches the selected category name
+            const selectedCategory = categories.find(
+              (cat) => cat.name === categoryParam
+            );
+
+            if (selectedCategory) {
+              console.log(
+                `Found category ID: ${selectedCategory.id} for ${categoryParam}`
+              );
+              // Filter courses by category_id
+              query = query.eq("category_id", selectedCategory.id);
+            } else {
+              console.log(`No category found with name: ${categoryParam}`);
+              // If we can't find the category, return empty results
+              setCourses([]);
+              setLoading(false);
+              return; // Exit early
+            }
+          } catch (err) {
+            console.error("Error in category filtering:", err);
+            // Continue with the query without filtering
+          }
         }
 
         // Apply search filter
@@ -59,22 +106,47 @@ export default function CoursesPage() {
           query = query.ilike("title", `%${searchQuery}%`);
         }
 
+        console.log("Executing courses query...");
         // Execute query
         const { data, error } = await query;
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase courses query error:", error);
+          throw error;
+        }
 
-        setCourses(data || []);
+        console.log(`Fetched ${data?.length || 0} courses:`, data);
+
+        // Process the data to flatten the category structure for easier use in components
+        const processedData = (data || []).map((course) => {
+          const categoryName =
+            course.categories?.name || course.category_name || course.category;
+          console.log(`Processing course ${course.id}: Category data:`, {
+            categoryId: course.category_id,
+            categoryObj: course.categories,
+            finalCategoryName: categoryName,
+          });
+
+          return {
+            ...course,
+            category_name: categoryName,
+          };
+        });
+
+        console.log("Processed courses data:", processedData);
+        setCourses(processedData);
       } catch (err) {
         console.error("Error fetching courses:", err);
         setError("Failed to load courses. Please try again later.");
+        // Set empty courses array to prevent undefined errors
+        setCourses([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCourses();
-  }, [categoryParam, searchQuery]);
+  }, [categoryParam, searchQuery, categories]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -137,13 +209,15 @@ export default function CoursesPage() {
               <h3 className="font-medium mb-2">Categories</h3>
               <div className="space-y-2">
                 {categories.map((category) => (
-                  <div key={category} className="flex items-center">
+                  <div key={category.id} className="flex items-center">
                     <Button
-                      variant={categoryParam === category ? "default" : "ghost"}
+                      variant={
+                        categoryParam === category.name ? "default" : "ghost"
+                      }
                       className="w-full justify-start text-left"
-                      onClick={() => handleCategoryClick(category)}
+                      onClick={() => handleCategoryClick(category.name)}
                     >
-                      {category}
+                      {category.name}
                     </Button>
                   </div>
                 ))}

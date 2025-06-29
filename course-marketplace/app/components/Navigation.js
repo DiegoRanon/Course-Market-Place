@@ -128,8 +128,8 @@ export default function Navigation() {
               </Link>
             )}
 
-            {/* Show My Courses link for creators who can view their course statistics */}
-            {userIsCreator && (
+            {/* Show My Courses link only for creators (not admins) */}
+            {profile?.role === "creator" && (
               <Link
                 href="/admin/courses"
                 className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
@@ -253,7 +253,7 @@ export default function Navigation() {
                         </>
                       )}
 
-                      {userIsCreator && (
+                      {profile?.role === "creator" && (
                         <Link
                           href="/admin/courses"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"

@@ -74,9 +74,9 @@ export default function CourseCard({
           </div>
         )}
 
-        {showCategory && course.category && (
+        {showCategory && course.category_name && (
           <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-sm font-medium">
-            {course.category}
+            {course.category_name}
           </div>
         )}
       </div>
