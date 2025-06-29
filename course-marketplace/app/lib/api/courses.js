@@ -1,10 +1,12 @@
-import { supabase } from '@/app/lib/supabase';
+import { supabase } from "@/app/lib/supabase";
 
 /**
  * Get a list of all published courses
  */
 export const getPublishedCourses = async () => {
   try {
+    console.log("Fetching published courses...");
+
     const { data, error } = await supabase
       .from("courses")
       .select("*")
@@ -12,9 +14,11 @@ export const getPublishedCourses = async () => {
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("Supabase error fetching courses:", error);
       throw new Error(error.message);
     }
 
+    console.log(`Successfully fetched ${data?.length || 0} courses`);
     return { data: data || [], error: null };
   } catch (err) {
     console.error("Error fetching courses:", err);
@@ -109,4 +113,4 @@ export const updateCourse = async (courseId, courseData) => {
     console.error(`Error updating course with ID ${courseId}:`, err);
     return { data: null, error: err.message };
   }
-}; 
+};

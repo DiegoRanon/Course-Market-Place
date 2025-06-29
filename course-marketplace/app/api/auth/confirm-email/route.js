@@ -13,6 +13,7 @@ export async function POST(request) {
       });
 
       if (error) {
+        console.error("Email verification error:", error);
         return NextResponse.json(
           { success: false, error: error.message },
           { status: 400 }
@@ -25,9 +26,21 @@ export async function POST(request) {
           // Get user metadata to determine role
           const userMetadata = data.user.user_metadata || {};
           const role = userMetadata.role || "student";
-          
+
+          // Check if profile already exists
+          const { data: existingProfile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("id", data.user.id)
+            .single();
+
+          if (existingProfile) {
+            console.log("Profile already exists for user:", data.user.id);
+            return NextResponse.json({ success: true });
+          }
+
           // Create profile record
-          const { error: profileError } = await supabase.from("profiles").insert({
+          const profileData = {
             id: data.user.id,
             first_name: userMetadata.first_name || "",
             last_name: userMetadata.last_name || "",
@@ -35,17 +48,37 @@ export async function POST(request) {
             role: role,
             description: userMetadata.description || "",
             status: "active",
-          });
+          };
+
+          console.log(
+            "Creating profile with data:",
+            JSON.stringify(profileData)
+          );
+
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .insert(profileData);
 
           if (profileError) {
-            console.error("Error creating profile:", profileError);
+            console.error(
+              "Error creating profile:",
+              JSON.stringify(profileError)
+            );
             // Don't fail the email confirmation if profile creation fails
             // The profile can be created later
           } else {
-            console.log("Profile created successfully for user:", data.user.id, "with role:", role);
+            console.log(
+              "Profile created successfully for user:",
+              data.user.id,
+              "with role:",
+              role
+            );
           }
         } catch (profileError) {
-          console.error("Error creating profile:", profileError);
+          console.error(
+            "Exception in profile creation:",
+            profileError.message || profileError
+          );
           // Don't fail the email confirmation if profile creation fails
         }
       }
@@ -79,7 +112,7 @@ export async function POST(request) {
       { status: 400 }
     );
   } catch (error) {
-    console.error("Email confirmation error:", error);
+    console.error("Email confirmation error:", error.message || error);
     return NextResponse.json(
       { success: false, error: "An unexpected error occurred" },
       { status: 500 }

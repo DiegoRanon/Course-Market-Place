@@ -60,8 +60,8 @@ create policy "Only admins can manage categories" on categories
 -- Drop existing courses policies
 drop policy if exists "Anyone can view published courses" on courses;
 drop policy if exists "Users can view own courses" on courses;
-drop policy if exists "Instructors can create courses" on courses;
-drop policy if exists "Instructors can update own courses" on courses;
+drop policy if exists "Creators can create courses" on courses;
+drop policy if exists "Creators can update own courses" on courses;
 drop policy if exists "Admins can manage all courses" on courses;
 
 -- Create new courses policies
@@ -69,15 +69,15 @@ create policy "Anyone can view published courses" on courses
   for select using (status = 'published');
 
 create policy "Users can view own courses" on courses
-  for select using (instructor_id = auth.uid());
+  for select using (creator_id = auth.uid());
 
-create policy "Instructors can create courses" on courses
+create policy "Creators can create courses" on courses
   for insert with check (
-    (auth.jwt() ->> 'user_metadata')::jsonb ->> 'role' in ('instructor', 'admin')
+    (auth.jwt() ->> 'user_metadata')::jsonb ->> 'role' in ('creator', 'admin')
   );
 
-create policy "Instructors can update own courses" on courses
-  for update using (instructor_id = auth.uid());
+create policy "Creators can update own courses" on courses
+  for update using (creator_id = auth.uid());
 
 create policy "Admins can manage all courses" on courses
   for all using (
@@ -91,7 +91,7 @@ create policy "Admins can manage all courses" on courses
 -- Drop existing lessons policies
 drop policy if exists "Anyone can view lessons for published courses" on lessons;
 drop policy if exists "Enrolled users can view lessons" on lessons;
-drop policy if exists "Instructors can manage own course lessons" on lessons;
+drop policy if exists "Creators can manage own course lessons" on lessons;
 drop policy if exists "Admins can manage all lessons" on lessons;
 
 -- Create new lessons policies
@@ -111,11 +111,11 @@ create policy "Enrolled users can view lessons" on lessons
     )
   );
 
-create policy "Instructors can manage own course lessons" on lessons
+create policy "Creators can manage own course lessons" on lessons
   for all using (
     exists (
       select 1 from courses
-      where id = lessons.course_id and instructor_id = auth.uid()
+      where id = lessons.course_id and creator_id = auth.uid()
     )
   );
 
@@ -132,7 +132,7 @@ create policy "Admins can manage all lessons" on lessons
 drop policy if exists "Users can view own enrollments" on enrollments;
 drop policy if exists "Users can enroll in courses" on enrollments;
 drop policy if exists "Users can update own enrollments" on enrollments;
-drop policy if exists "Instructors can view course enrollments" on enrollments;
+drop policy if exists "Creators can view course enrollments" on enrollments;
 drop policy if exists "Admins can view all enrollments" on enrollments;
 
 -- Create new enrollments policies
@@ -145,11 +145,11 @@ create policy "Users can enroll in courses" on enrollments
 create policy "Users can update own enrollments" on enrollments
   for update using (user_id = auth.uid());
 
-create policy "Instructors can view course enrollments" on enrollments
+create policy "Creators can view course enrollments" on enrollments
   for select using (
     exists (
       select 1 from courses
-      where id = enrollments.course_id and instructor_id = auth.uid()
+      where id = enrollments.course_id and creator_id = auth.uid()
     )
   );
 
@@ -165,7 +165,7 @@ create policy "Admins can view all enrollments" on enrollments
 -- Drop existing progress policies
 drop policy if exists "Users can view own progress" on progress;
 drop policy if exists "Users can update own progress" on progress;
-drop policy if exists "Instructors can view course progress" on progress;
+drop policy if exists "Creators can view course progress" on progress;
 drop policy if exists "Admins can view all progress" on progress;
 
 -- Create new progress policies
@@ -178,11 +178,13 @@ create policy "Users can update own progress" on progress
 create policy "Users can update own progress" on progress
   for update using (user_id = auth.uid());
 
-create policy "Instructors can view course progress" on progress
+create policy "Creators can view course progress" on progress
   for select using (
     exists (
-      select 1 from courses
-      where id = progress.course_id and instructor_id = auth.uid()
+      select 1 from lessons
+      join sections on lessons.section_id = sections.id
+      join courses on sections.course_id = courses.id
+      where lessons.id = progress.lesson_id and courses.creator_id = auth.uid()
     )
   );
 

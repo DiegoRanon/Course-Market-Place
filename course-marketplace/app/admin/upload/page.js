@@ -1,7 +1,7 @@
 // /app/admin/upload/page.js (App Router + RSC + Supabase)
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import UploadBox from '@/components/UploadBox';
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import UploadBox from "@/app/components/UploadBox";
 
 export default async function UploadPage() {
   const supabase = createServerComponentClient({ cookies });
@@ -14,13 +14,15 @@ export default async function UploadPage() {
   }
 
   const { data: profile } = await supabase
-    .from('profiles') // ou "users" selon ta DB
-    .select('role')
-    .eq('id', user.id)
+    .from("profiles") // ou "users" selon ta DB
+    .select("role")
+    .eq("id", user.id)
     .single();
 
-  if (profile?.role !== 'admin') {
-    return <div className="p-8 text-red-600">Accès réservé aux administrateurs</div>;
+  if (profile?.role !== "admin") {
+    return (
+      <div className="p-8 text-red-600">Accès réservé aux administrateurs</div>
+    );
   }
 
   return (

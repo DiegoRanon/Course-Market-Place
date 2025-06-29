@@ -2,7 +2,11 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
-import { signInWithPassword, signUpWithEmail, signOut as authSignOut } from "@/app/lib/api/auth";
+import {
+  signInWithPassword,
+  signUpWithEmail,
+  signOut as authSignOut,
+} from "@/app/lib/api/auth";
 import { getUserProfile, updateUserProfile } from "@/app/lib/api/profiles";
 
 const AuthContext = createContext({});
@@ -57,16 +61,41 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async (userId) => {
     try {
+      if (!userId) {
+        console.error("Cannot fetch profile: userId is undefined");
+        setProfile(null);
+        return;
+      }
+
       const data = await getUserProfile(userId);
-      setProfile(data);
+
+      if (!data) {
+        console.warn("No profile data returned for user:", userId);
+        // Set a minimal profile to prevent UI errors
+        setProfile({
+          id: userId,
+          role: "student", // Default role
+          status: "pending",
+        });
+      } else {
+        setProfile(data);
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
+      // Set a default profile to prevent UI errors
+      setProfile({
+        id: userId,
+        role: "student", // Default role
+        status: "error",
+      });
     }
   };
 
   const signUp = async (email, password, userData) => {
     const data = await signUpWithEmail(email, password, userData);
-    console.log("User signed up successfully. Profile will be created after email confirmation.");
+    console.log(
+      "User signed up successfully. Profile will be created after email confirmation."
+    );
     return data;
   };
 
