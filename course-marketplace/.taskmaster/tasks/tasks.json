@@ -290,7 +290,7 @@
         "id": 6,
         "title": "Develop User Dashboard",
         "description": "Create the user dashboard showing enrolled courses, progress tracking, and account settings for students.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [3, 5],
         "priority": "medium",
         "details": "1. Design and implement dashboard layout using shadcn/ui components:\n   - Sidebar navigation\n   - Enrolled courses grid/list\n   - Progress overview section\n   - Account settings section\n2. Create enrolled courses component:\n   - Course cards with progress indicators using shadcn/ui Card\n   - Continue learning button that takes user to last watched lesson\n   - Sort and filter options\n3. Implement progress visualization:\n   - Progress bars for each course using shadcn/ui Progress component\n   - Completion statistics\n   - Recently watched lessons\n4. Create account settings page:\n   - Profile information update form using shadcn/ui Form components\n   - Password change form\n   - Notification preferences\n   - Payment history\n5. Implement API endpoints for dashboard data:\n```javascript\n// pages/api/user/dashboard.js\nimport { supabase } from '../../../utils/supabase-client';\nimport { getUser } from '../../../utils/auth';\n\nexport default async function handler(req, res) {\n  const user = await getUser(req);\n  \n  if (!user) {\n    return res.status(401).json({ error: 'Unauthorized' });\n  }\n  \n  // Get enrolled courses with progress\n  const { data: enrollments, error } = await supabase\n    .from('enrollments')\n    .select(`\n      *,\n      courses(*),\n      progress:progress(count)\n    `)\n    .eq('user_id', user.id);\n  \n  if (error) {\n    return res.status(500).json({ error: error.message });\n  }\n  \n  // Process data to calculate progress percentages\n  const processedData = enrollments.map(enrollment => {\n    // Calculate progress percentage logic\n    return {\n      ...enrollment,\n      progressPercentage: calculateProgress(enrollment)\n    };\n  });\n  \n  return res.status(200).json(processedData);\n}\n```",
@@ -302,7 +302,7 @@
             "description": "Design and implement the core dashboard layout with responsive navigation elements",
             "dependencies": [],
             "details": "Create the main dashboard structure with a sidebar navigation, header, and content area. Implement responsive design for all screen sizes. Include navigation links to all dashboard sections (courses, progress, settings). Ensure accessibility compliance and implement navigation state management.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -311,7 +311,7 @@
             "description": "Develop the enrolled courses section showing all user courses with progress tracking",
             "dependencies": [1],
             "details": "Query the database to fetch user enrollment data. Design and implement course cards showing thumbnail, title, description, and completion percentage. Add filtering and sorting options. Implement progress indicators (progress bars, completion badges) for each course. Ensure proper handling of different course states (not started, in progress, completed).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -320,7 +320,7 @@
             "description": "Create data visualizations and statistics for user learning progress",
             "dependencies": [1, 2],
             "details": "Implement charts and graphs showing overall learning progress across all courses. Create time-based visualizations (weekly/monthly activity). Add achievement statistics and milestone tracking. Develop a summary section with key metrics (courses completed, total learning hours, etc.). Ensure all visualizations are interactive and responsive.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -329,7 +329,7 @@
             "description": "Develop the user profile and account settings functionality",
             "dependencies": [1],
             "details": "Create profile editing interface with avatar upload capability. Implement account settings forms (notification preferences, privacy settings, password change). Add email and notification management. Develop session management and security settings. Ensure proper validation and error handling for all form submissions. Implement success/error feedback mechanisms.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]

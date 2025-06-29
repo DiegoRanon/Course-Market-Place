@@ -114,3 +114,277 @@ export const updateCourse = async (courseId, courseData) => {
     return { data: null, error: err.message };
   }
 };
+
+/**
+ * Fetch all available courses
+ */
+export async function getAllCourses() {
+  try {
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .eq("is_published", true);
+
+    if (error) {
+      console.error("Error fetching courses:", error);
+      throw new Error("Failed to fetch courses");
+    }
+
+    return data || [];
+  } catch (err) {
+    console.error("Error in getAllCourses:", err);
+    throw err;
+  }
+}
+
+/**
+ * Fetch enrolled courses for the current user
+ */
+export async function getEnrolledCourses(userId) {
+  try {
+    console.log(`Fetching enrollments for user: ${userId}`);
+
+    // First, check if enrollments table exists
+    const { error: tableCheckError } = await supabase
+      .from("enrollments")
+      .select("count")
+      .limit(1);
+
+    if (tableCheckError) {
+      console.error("Error checking enrollments table:", tableCheckError);
+      console.log(
+        "Enrollments table might not exist or you don't have access to it"
+      );
+      return [];
+    }
+
+    // First, get all enrollments for this user
+    const { data: enrollments, error: enrollmentsError } = await supabase
+      .from("enrollments")
+      .select("*, course:course_id(*)")
+      .eq("user_id", userId);
+
+    if (enrollmentsError) {
+      // Handle the case where error might be an empty object
+      const errorMessage =
+        Object.keys(enrollmentsError).length === 0
+          ? "Unknown error (possibly empty enrollments table)"
+          : JSON.stringify(enrollmentsError);
+
+      console.log(`Enrollment query returned error: ${errorMessage}`);
+      // Don't throw an error, just return empty array
+      return [];
+    }
+
+    // Log the enrollments for debugging
+    console.log(`Found ${enrollments?.length || 0} enrollments:`, enrollments);
+
+    // If there are no enrollments, return an empty array
+    if (!enrollments || enrollments.length === 0) {
+      console.log("No enrollments found for this user");
+      return [];
+    }
+
+    // Then, for each course, fetch progress information
+    const coursesWithProgress = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        try {
+          // Check if we have course data
+          if (!enrollment.course) {
+            console.log(`No course data for enrollment: ${enrollment.id}`);
+            return null;
+          }
+
+          const course = enrollment.course;
+          console.log(`Processing course: ${course.id} - ${course.title}`);
+
+          // Check if sections table exists and get all lessons for this course
+          let lessons = [];
+          try {
+            // First try to get sections and lessons
+            const { data: sectionsData, error: sectionsError } = await supabase
+              .from("sections")
+              .select("id")
+              .eq("course_id", course.id);
+
+            if (sectionsError) {
+              console.error("Error fetching sections:", sectionsError);
+              // Sections table might not exist
+            } else if (sectionsData && sectionsData.length > 0) {
+              // Get lessons for these sections
+              const sectionIds = sectionsData.map((section) => section.id);
+              const { data: lessonsData, error: lessonsError } = await supabase
+                .from("lessons")
+                .select("id")
+                .in("section_id", sectionIds);
+
+              if (lessonsError) {
+                console.error("Error fetching lessons:", lessonsError);
+              } else {
+                lessons = lessonsData || [];
+              }
+            }
+          } catch (err) {
+            console.error("Error in lessons/sections query:", err);
+            // Continue with empty lessons
+          }
+
+          // Get completed lessons for this user and course
+          let progress = [];
+          if (lessons.length > 0) {
+            try {
+              const { data: progressData, error: progressError } =
+                await supabase
+                  .from("progress")
+                  .select("*")
+                  .eq("user_id", userId)
+                  .eq("completed", true)
+                  .in(
+                    "lesson_id",
+                    lessons.map((lesson) => lesson.id)
+                  );
+
+              if (progressError) {
+                console.error("Error fetching progress:", progressError);
+              } else {
+                progress = progressData || [];
+              }
+            } catch (err) {
+              console.error("Error in progress query:", err);
+              // Continue with empty progress
+            }
+          }
+
+          // Calculate progress percentage
+          const totalLessons = lessons?.length || 0;
+          const completedLessons = progress?.length || 0;
+          const progressPercentage =
+            totalLessons > 0
+              ? Math.round((completedLessons / totalLessons) * 100)
+              : 0;
+
+          // Mark as completed if 100% progress
+          const completed = progressPercentage === 100;
+
+          return {
+            id: course.id,
+            title: course.title || "Untitled Course",
+            description: course.description || "",
+            thumbnail_url: course.thumbnail_url || "",
+            progress: progressPercentage,
+            completed,
+            totalLessons,
+            completedLessons,
+            enrolledAt: enrollment.purchased_at || new Date().toISOString(),
+          };
+        } catch (err) {
+          console.error(
+            `Error processing course for enrollment ${enrollment.id}:`,
+            err
+          );
+          return null;
+        }
+      })
+    );
+
+    // Filter out any null values from the array
+    const validCourses = coursesWithProgress.filter(
+      (course) => course !== null
+    );
+    console.log(`Returning ${validCourses.length} valid enrolled courses`);
+    return validCourses;
+  } catch (err) {
+    console.error("Error in getEnrolledCourses:", err);
+    return []; // Return empty array instead of throwing
+  }
+}
+
+/**
+ * Filter and sort enrolled courses
+ */
+export function filterAndSortEnrolledCourses(
+  courses,
+  filters = {},
+  sortOption = "newest"
+) {
+  let filteredCourses = [...courses];
+
+  // Apply filters
+  if (filters.status === "completed") {
+    filteredCourses = filteredCourses.filter((course) => course.completed);
+  } else if (filters.status === "in-progress") {
+    filteredCourses = filteredCourses.filter((course) => !course.completed);
+  }
+
+  // Apply sorting
+  switch (sortOption) {
+    case "newest":
+      filteredCourses.sort(
+        (a, b) => new Date(b.enrolledAt || 0) - new Date(a.enrolledAt || 0)
+      );
+      break;
+    case "title-asc":
+      filteredCourses.sort((a, b) => a.title.localeCompare(b.title));
+      break;
+    case "title-desc":
+      filteredCourses.sort((a, b) => b.title.localeCompare(a.title));
+      break;
+    case "progress-asc":
+      filteredCourses.sort((a, b) => a.progress - b.progress);
+      break;
+    case "progress-desc":
+      filteredCourses.sort((a, b) => b.progress - a.progress);
+      break;
+    default:
+      // Default to newest
+      filteredCourses.sort(
+        (a, b) => new Date(b.enrolledAt || 0) - new Date(a.enrolledAt || 0)
+      );
+  }
+
+  return filteredCourses;
+}
+
+/**
+ * Utility function to check database schema and diagnose issues
+ */
+export async function checkDatabaseSchema() {
+  try {
+    console.log("Checking database schema...");
+
+    // Check if tables exist
+    const tables = [
+      "courses",
+      "enrollments",
+      "sections",
+      "lessons",
+      "progress",
+    ];
+    const tableResults = {};
+
+    for (const table of tables) {
+      try {
+        const { count, error } = await supabase
+          .from(table)
+          .select("*", { count: "exact", head: true });
+
+        tableResults[table] = {
+          exists: !error,
+          count: count || 0,
+          error: error ? error.message : null,
+        };
+      } catch (err) {
+        tableResults[table] = {
+          exists: false,
+          error: err.message,
+        };
+      }
+    }
+
+    console.log("Database schema check results:", tableResults);
+    return tableResults;
+  } catch (err) {
+    console.error("Error checking database schema:", err);
+    return { error: err.message };
+  }
+}
