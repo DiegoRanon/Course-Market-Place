@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "../../components/ui/card";
 
 export default function CourseCard({
   course,

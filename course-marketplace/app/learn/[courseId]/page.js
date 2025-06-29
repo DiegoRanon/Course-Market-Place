@@ -1,10 +1,16 @@
-export default function CourseViewer({ params }) {
+"use client";
+
+import { useParams } from "next/navigation";
+
+export default function CourseViewer() {
+  const params = useParams();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Course Viewer</h1>
-        <p className="text-lg mb-4">Course ID: {params.courseId}</p>
-        
+        <p className="text-lg mb-4">Course ID: {params?.courseId}</p>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Video Player */}
           <div className="lg:col-span-2">
@@ -16,7 +22,7 @@ export default function CourseViewer({ params }) {
             <h2 className="text-xl font-semibold mb-2">Current Lesson Title</h2>
             <p className="text-gray-600">Lesson description and content...</p>
           </div>
-          
+
           {/* Progress Sidebar */}
           <div className="bg-white rounded-lg shadow-md p-4">
             <h3 className="text-lg font-semibold mb-4">Course Progress</h3>
@@ -26,10 +32,13 @@ export default function CourseViewer({ params }) {
                 <span>25%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '25%' }}></div>
+                <div
+                  className="bg-blue-500 h-2 rounded-full"
+                  style={{ width: "25%" }}
+                ></div>
               </div>
             </div>
-            
+
             <h4 className="font-medium mb-2">Course Content</h4>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center">
@@ -50,4 +59,4 @@ export default function CourseViewer({ params }) {
       </div>
     </div>
   );
-} 
+}

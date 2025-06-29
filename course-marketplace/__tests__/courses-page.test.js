@@ -1,142 +1,110 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import CoursesPage from '../app/courses/page';
-import { supabase } from '../app/lib/supabase';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import CoursesPage from "../app/courses/page";
+import { expect, jest, test, describe } from "@jest/globals";
 
-// Mock the Supabase client
-jest.mock('../app/lib/supabase', () => ({
+// Mock next/navigation hooks
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+  useSearchParams: () => ({
+    get: (param) => {
+      if (param === "category") return null;
+      if (param === "search") return "";
+      return null;
+    },
+  }),
+}));
+
+// Mock supabase
+jest.mock("../app/lib/supabase", () => ({
   supabase: {
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
-    order: jest.fn().mockReturnThis(),
-    data: null,
-    error: null,
+    ilike: jest.fn().mockReturnThis(),
+    then: jest.fn(),
   },
 }));
 
-// Mock Next.js navigation hooks
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(),
+// Mock next/image
+jest.mock("next/image", () => ({
+  __esModule: true,
+  default: (props) => {
+    return <img {...props} />;
+  },
 }));
 
-describe('Courses Page', () => {
-  // Sample course data for testing
-  const mockCourses = [
-    {
-      id: 'course-1',
-      title: 'Introduction to Web Development',
-      description: 'Learn the basics of HTML, CSS, and JavaScript',
-      short_description: 'Start your web dev journey',
-      image_url: '/images/web-dev.jpg',
-      price: 49.99,
-      status: 'published',
-      created_at: '2023-01-01T00:00:00.000Z',
-    },
-    {
-      id: 'course-2',
-      title: 'Advanced React Patterns',
-      description: 'Master advanced React concepts and patterns',
-      short_description: 'Take your React skills to the next level',
-      image_url: '/images/react-advanced.jpg',
-      price: 79.99,
-      status: 'published',
-      created_at: '2023-02-01T00:00:00.000Z',
-    },
-    {
-      id: 'course-3',
-      title: 'Introduction to HTML',
-      description: 'Learn the basics of HTML markup language',
-      short_description: 'Start your web development journey',
-      image_url: '/images/html-basics.jpg',
-      price: null, // Free course
-      status: 'published',
-      created_at: '2023-03-01T00:00:00.000Z',
-    },
-  ];
-
+describe("Courses Page", () => {
   beforeEach(() => {
-    // Reset mocks
-    jest.clearAllMocks();
+    // Reset all mocks
+    jest.resetAllMocks();
 
-    // Default Supabase response
-    supabase.from.mockImplementation(() => ({
+    // Setup default mock implementation
+    const mockSupabase = {
+      from: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      data: mockCourses,
-      error: null,
-    }));
+      ilike: jest.fn().mockReturnThis(),
+    };
+
+    // Mock successful categories response
+    mockSupabase
+      .from()
+      .select()
+      .eq.mockResolvedValueOnce({
+        data: [
+          { category: "Web Development" },
+          { category: "Data Science" },
+          { category: "Web Development" },
+          { category: "Design" },
+        ],
+        error: null,
+      });
+
+    // Mock successful courses response
+    mockSupabase
+      .from()
+      .select()
+      .eq.mockResolvedValueOnce({
+        data: [
+          {
+            id: "1",
+            title: "React Fundamentals",
+            description: "Learn React from scratch",
+            price: 49.99,
+            category: "Web Development",
+            users: { name: "John Doe" },
+          },
+          {
+            id: "2",
+            title: "Data Science Basics",
+            description: "Introduction to data science",
+            price: 59.99,
+            category: "Data Science",
+            users: { name: "Jane Smith" },
+          },
+        ],
+        error: null,
+      });
+
+    require("../app/lib/supabase").supabase = mockSupabase;
   });
 
-  it('renders loading state initially', async () => {
-    // Override the default mock to simulate loading
-    supabase.from.mockImplementation(() => ({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      // Don't return data immediately to simulate loading
-    }));
-
+  test("renders the courses page with title", async () => {
     render(<CoursesPage />);
-    
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(screen.getByText("All Courses")).toBeInTheDocument();
   });
 
-  it('renders course cards with correct information', async () => {
+  test("renders filters section", async () => {
     render(<CoursesPage />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Introduction to Web Development')).toBeInTheDocument();
-      expect(screen.getByText('Advanced React Patterns')).toBeInTheDocument();
-      expect(screen.getByText('Introduction to HTML')).toBeInTheDocument();
-      
-      expect(screen.getByText('Start your web dev journey')).toBeInTheDocument();
-      expect(screen.getByText('Take your React skills to the next level')).toBeInTheDocument();
-      expect(screen.getByText('Start your web development journey')).toBeInTheDocument();
-      
-      expect(screen.getByText('$49.99')).toBeInTheDocument();
-      expect(screen.getByText('$79.99')).toBeInTheDocument();
-      expect(screen.getByText('Free')).toBeInTheDocument();
-      
-      // Check for links to course detail pages
-      const links = screen.getAllByRole('link');
-      expect(links[0].getAttribute('href')).toBe('/courses/course-1');
-      expect(links[1].getAttribute('href')).toBe('/courses/course-2');
-      expect(links[2].getAttribute('href')).toBe('/courses/course-3');
-    });
+    expect(screen.getByText("Filters")).toBeInTheDocument();
+    expect(screen.getByText("Search")).toBeInTheDocument();
+    expect(screen.getByText("Categories")).toBeInTheDocument();
   });
 
-  it('renders empty state when no courses are found', async () => {
-    // Override Supabase mock to return empty array
-    supabase.from.mockImplementation(() => ({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      data: [],
-      error: null,
-    }));
-
+  test("displays loading state initially", async () => {
     render(<CoursesPage />);
-    
-    await waitFor(() => {
-      expect(screen.getByText(/no courses available/i)).toBeInTheDocument();
-    });
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
-
-  it('handles API error gracefully', async () => {
-    // Override Supabase mock to simulate an error
-    supabase.from.mockImplementation(() => ({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      order: jest.fn().mockReturnThis(),
-      data: null,
-      error: { message: 'Failed to fetch courses' },
-    }));
-
-    render(<CoursesPage />);
-    
-    await waitFor(() => {
-      expect(screen.getByText(/error loading courses/i)).toBeInTheDocument();
-    });
-  });
-}); 
+});

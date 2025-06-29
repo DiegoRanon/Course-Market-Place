@@ -119,7 +119,7 @@
         "id": 3,
         "title": "Implement Authentication System",
         "description": "Set up Supabase authentication with role-based access control for Admin, Creator, and Student roles, including signup, login, and account management.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [1, 2],
         "priority": "high",
         "details": "1. Configure Supabase Auth settings in the dashboard\n2. Create authentication UI components using shadcn/ui:\n   - SignUp.jsx\n   - Login.jsx\n   - ResetPassword.jsx\n   - UpdateProfile.jsx\n3. Implement role selection during signup\n4. Create authentication context and hooks:\n```javascript\n// auth-context.js\nimport { createContext, useContext, useEffect, useState } from 'react';\nimport { supabase } from '../utils/supabase-client';\n\nconst AuthContext = createContext();\n\nexport function AuthProvider({ children }) {\n  const [user, setUser] = useState(null);\n  const [loading, setLoading] = useState(true);\n  \n  // Implementation details...\n  \n  return (\n    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>\n      {children}\n    </AuthContext.Provider>\n  );\n}\n\nexport const useAuth = () => {\n  const context = useContext(AuthContext);\n  if (context === undefined) {\n    throw new Error('useAuth must be used within an AuthProvider');\n  }\n  return context;\n};\n```\n5. Implement protected routes with role-based access control\n6. Set up email verification flow\n7. Create account management page for profile updates\n8. Implement password reset functionality",
@@ -185,7 +185,7 @@
         "id": 4,
         "title": "Develop Landing Page and Course Marketplace",
         "description": "Create the landing page with hero section, featured courses, and testimonials, plus the course marketplace with browsing, search, and filtering functionality.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [1, 2],
         "priority": "medium",
         "details": "1. Design and implement landing page components using shadcn/ui:\n   - Hero section with call-to-action\n   - Featured courses carousel\n   - Testimonials section\n   - Category highlights\n   - Footer with navigation\n2. Implement course marketplace components:\n   - Course card component using shadcn/ui Card\n   - Grid layout for courses\n   - Search functionality with debounce\n   - Filter sidebar with category, price, and duration filters using shadcn/ui components\n   - Pagination or infinite scroll\n3. Create API endpoints for course data:\n```javascript\n// pages/api/courses.js\nimport { supabase } from '../../utils/supabase-client';\n\nexport default async function handler(req, res) {\n  const { category, search, minPrice, maxPrice } = req.query;\n  \n  let query = supabase\n    .from('courses')\n    .select('*, users!creator_id(name)')\n    .eq('is_published', true);\n    \n  // Apply filters based on query params\n  if (category) {\n    query = query.eq('category', category);\n  }\n  \n  if (search) {\n    query = query.ilike('title', `%${search}%`);\n  }\n  \n  // More filter logic...\n  \n  const { data, error } = await query;\n  \n  if (error) {\n    return res.status(500).json({ error: error.message });\n  }\n  \n  return res.status(200).json(data);\n}\n```\n4. Implement client-side data fetching with SWR or React Query\n5. Create responsive grid layout that adapts to different screen sizes\n6. Implement search functionality with server-side filtering\n7. Add sorting options (newest, most popular, highest rated)",
@@ -197,7 +197,7 @@
             "description": "Create responsive landing page components including hero section, featured courses, testimonials, and call-to-action sections.",
             "dependencies": [],
             "details": "Implement responsive design for all screen sizes. Create reusable UI components for the hero section with compelling copy and imagery. Design featured courses section with preview cards. Add testimonial carousel/grid. Include newsletter signup and footer sections. Ensure consistent styling with the design system.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -206,7 +206,7 @@
             "description": "Develop the marketplace page with course cards displayed in a responsive grid layout.",
             "dependencies": [1],
             "details": "Create reusable course card component with image, title, instructor, price, and rating. Implement responsive grid layout that adjusts based on screen size (4 columns on desktop, 2 on tablet, 1 on mobile). Add pagination or infinite scroll functionality. Include course quick-view functionality. Ensure accessibility compliance for all interactive elements.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -215,7 +215,7 @@
             "description": "Add search bar, category filters, price range filters, and sorting options to the marketplace.",
             "dependencies": [2],
             "details": "Create search input with autocomplete suggestions. Implement category filter checkboxes/dropdown. Add price range slider. Create sorting dropdown (by price, popularity, newest). Ensure all filters can be combined. Implement client-side filtering for immediate feedback and prepare for server-side filtering integration. Add clear filters button and filter tags display.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -224,7 +224,7 @@
             "description": "Create backend API endpoints and implement data fetching for course listings with filtering and sorting capabilities.",
             "dependencies": [3],
             "details": "Design RESTful API endpoints for course listings. Implement server-side filtering, sorting, and pagination. Create data models for courses with all necessary fields. Add caching mechanisms for improved performance. Implement error handling and loading states in the UI. Connect frontend filters to API parameters. Add data fetching hooks or services for reusability.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
