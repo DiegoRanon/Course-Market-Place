@@ -2,8 +2,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { supabase } from '@/utils/supabaseClient';
-
+import { supabase } from '@/app/lib/supabase';
 export default function UploadBox({ userId, courseId }) {
   const fileInputRef = useRef(null);
   const [message, setMessage] = useState('');
@@ -52,7 +51,8 @@ export default function UploadBox({ userId, courseId }) {
   return (
     <div className="border border-dashed border-gray-400 p-8 rounded-lg text-center">
       <p className="mb-4">Cliquez pour importer une vidéo de leçon</p>
-      <button
+      <button type="button"
+
         className="bg-blue-600 text-white px-4 py-2 rounded"
         onClick={() => fileInputRef.current.click()}
         disabled={loading}

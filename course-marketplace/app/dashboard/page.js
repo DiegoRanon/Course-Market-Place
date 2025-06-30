@@ -9,7 +9,7 @@ export default function UserDashboard() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
             Enrolled Courses
-          </h3>
+         </h3>
           <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
             5
           </p>
