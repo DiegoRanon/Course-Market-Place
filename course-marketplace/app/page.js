@@ -4,8 +4,26 @@ import CategoryGrid from "./components/CategoryGrid";
 import CourseGrid from "./components/CourseGrid";
 import StatsGrid from "./components/StatsGrid";
 import Footer from "./components/Footer";
+import { supabase } from "./lib/supabase";
 
-export default function Home() {
+async function getFeaturedCourses() {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  if (error) {
+    console.error("Error fetching featured courses:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export default async function Home() {
+  const featuredCourses = await getFeaturedCourses();
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       {/* Hero Section */}
@@ -15,7 +33,7 @@ export default function Home() {
       <CategoryGrid />
 
       {/* Featured Courses */}
-      <CourseGrid />
+      <CourseGrid courses={featuredCourses} title="Featured Courses" />
 
       {/* Stats Section */}
       <StatsGrid />

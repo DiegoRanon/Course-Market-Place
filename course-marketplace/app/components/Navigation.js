@@ -118,8 +118,8 @@ export default function Navigation() {
               Courses
             </Link>
 
-            {/* Show My Learning for authenticated users (all roles) */}
-            {user && (
+            {/* Show My Learning for authenticated users (excluding admins) */}
+            {user && !userIsAdmin && (
               <Link
                 href="/dashboard"
                 className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
@@ -128,8 +128,8 @@ export default function Navigation() {
               </Link>
             )}
 
-            {/* Show My Courses link for creators who can view their course statistics */}
-            {userIsCreator && (
+            {/* Show My Courses link only for creators (not admins) */}
+            {profile?.role === "creator" && (
               <Link
                 href="/admin/courses"
                 className="text-gray-700 hover:text-purple-600 font-medium transition-colors"
@@ -218,13 +218,16 @@ export default function Navigation() {
                         )}
                       </div>
 
-                      <Link
-                        href="/dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                        onClick={() => setIsProfileDropdownOpen(false)}
-                      >
-                        My Learning
-                      </Link>
+                      {/* Show My Learning for non-admin users */}
+                      {!userIsAdmin && (
+                        <Link
+                          href="/dashboard"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          My Learning
+                        </Link>
+                      )}
 
                       <Link
                         href="/account"
@@ -253,7 +256,7 @@ export default function Navigation() {
                         </>
                       )}
 
-                      {userIsCreator && (
+                      {profile?.role === "creator" && (
                         <Link
                           href="/admin/courses"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"

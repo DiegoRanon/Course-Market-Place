@@ -10,11 +10,13 @@ export default function PageContainer({
         {title && (
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-            {description && <p className="mt-2 text-lg text-gray-600">{description}</p>}
+            {description && (
+              <p className="mt-2 text-lg text-gray-600">{description}</p>
+            )}
           </div>
         )}
         {children}
       </div>
     </div>
   );
-} 
+}

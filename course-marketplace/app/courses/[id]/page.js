@@ -3,24 +3,26 @@
 import { useState, useEffect } from "react";
 import { getCourseById } from "@/app/lib/api/courses";
 import { useAuth } from "@/app/lib/AuthProvider";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import Button from "@/app/components/ui/Button";
 import LoadingState from "@/app/components/ui/LoadingState";
 import ErrorState from "@/app/components/ui/ErrorState";
 
-export default function CourseDetails({ params }) {
+export default function CourseDetails() {
   const { user } = useAuth();
   const router = useRouter();
+  const params = useParams();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (params.id) {
-      fetchCourse(params.id);
+    const courseId = params?.id;
+    if (courseId) {
+      fetchCourse(courseId);
     }
-  }, [params.id]);
+  }, [params?.id]);
 
   const fetchCourse = async (courseId) => {
     setLoading(true);
@@ -33,13 +35,13 @@ export default function CourseDetails({ params }) {
   const handleEnroll = () => {
     if (!user) {
       // Redirect to login if not authenticated
-      router.push(`/login?redirect=/courses/${params.id}`);
+      router.push(`/login?redirect=/courses/${params?.id}`);
       return;
     }
-    
+
     // Handle enrollment logic
-    console.log("Enrolling in course:", params.id);
-    router.push(`/learn/${params.id}`);
+    console.log("Enrolling in course:", params?.id);
+    router.push(`/learn/${params?.id}`);
   };
 
   if (loading) {
@@ -60,7 +62,7 @@ export default function CourseDetails({ params }) {
             title="Error Loading Course"
             message="There was an error loading the course details."
             details={error}
-            onRetry={() => fetchCourse(params.id)}
+            onRetry={() => params?.id && fetchCourse(params?.id)}
           />
         </div>
       </div>
@@ -85,19 +87,21 @@ export default function CourseDetails({ params }) {
       {/* Course Header Section */}
       <div className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">{course.title}</h1>
-          <p className="text-lg mb-6">{course.short_description || course.description}</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+            {course.title}
+          </h1>
+          <p className="text-lg mb-6">
+            {course.short_description || course.description}
+          </p>
           <div className="flex flex-wrap items-center gap-4">
             {course.price > 0 ? (
-              <span className="text-2xl font-bold">${parseFloat(course.price).toFixed(2)}</span>
+              <span className="text-2xl font-bold">
+                ${parseFloat(course.price).toFixed(2)}
+              </span>
             ) : (
               <span className="text-2xl font-bold">Free</span>
             )}
-            <Button 
-              onClick={handleEnroll} 
-              size="lg"
-              variant="primary"
-            >
+            <Button onClick={handleEnroll} size="lg" variant="primary">
               Enroll Now
             </Button>
           </div>
@@ -135,14 +139,18 @@ export default function CourseDetails({ params }) {
 
             {course.what_you_will_learn && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">What you&apos;ll learn</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  What you&apos;ll learn
+                </h3>
                 <div className="bg-gray-50 p-4 rounded-md">
                   <ul className="list-disc list-inside space-y-1">
                     {course.what_you_will_learn
-                      .split('\n')
-                      .filter(item => item.trim())
+                      .split("\n")
+                      .filter((item) => item.trim())
                       .map((item, index) => (
-                        <li key={index} className="text-gray-700">{item.trim()}</li>
+                        <li key={index} className="text-gray-700">
+                          {item.trim()}
+                        </li>
                       ))}
                   </ul>
                 </div>
@@ -150,8 +158,8 @@ export default function CourseDetails({ params }) {
             )}
 
             <div className="border-t border-gray-200 pt-4 mt-6">
-              <Button 
-                onClick={handleEnroll} 
+              <Button
+                onClick={handleEnroll}
                 size="lg"
                 variant="primary"
                 className="w-full md:w-auto"
@@ -164,4 +172,4 @@ export default function CourseDetails({ params }) {
       </div>
     </div>
   );
-} 
+}

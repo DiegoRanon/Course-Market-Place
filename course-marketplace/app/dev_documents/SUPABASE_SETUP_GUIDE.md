@@ -47,7 +47,7 @@ create table profiles (
   last_name text,
   full_name text,
   bio text,
-  role text check (role in ('admin', 'instructor', 'student')) default 'student',
+  role text check (role in ('admin', 'creator', 'student')) default 'student',
   status text check (status in ('active', 'inactive')) default 'active',
   avatar_url text,
   created_at timestamp with time zone default now(),
@@ -96,7 +96,7 @@ create table courses (
   price numeric(10, 2) not null default 0,
   original_price numeric(10, 2),
   category_id uuid references categories(id),
-  instructor_id uuid references profiles(id),
+  creator_id uuid references profiles(id),
   status text check (status in ('draft', 'published', 'archived')) default 'draft',
   difficulty text check (difficulty in ('beginner', 'intermediate', 'advanced')) default 'beginner',
   duration_hours integer default 0,
@@ -115,7 +115,7 @@ alter table courses enable row level security;
 -- Create indexes
 create index courses_slug_idx on courses(slug);
 create index courses_status_idx on courses(status);
-create index courses_instructor_id_idx on courses(instructor_id);
+create index courses_creator_id_idx on courses(creator_id);
 create index courses_category_id_idx on courses(category_id);
 create index courses_featured_idx on courses(featured);
 ```
@@ -355,20 +355,20 @@ create policy "Anyone can view published courses" on courses
 
 -- Users can view their own courses (draft/published)
 create policy "Users can view own courses" on courses
-  for select using (instructor_id = auth.uid());
+  for select using (creator_id = auth.uid());
 
--- Instructors can create courses
-create policy "Instructors can create courses" on courses
+-- Creators can create courses
+create policy "Creators can create courses" on courses
   for insert with check (
     exists (
       select 1 from profiles
-      where id = auth.uid() and role in ('instructor', 'admin')
+      where id = auth.uid() and role in ('creator', 'admin')
     )
   );
 
--- Instructors can update their own courses
-create policy "Instructors can update own courses" on courses
-  for update using (instructor_id = auth.uid());
+-- Creators can update their own courses
+create policy "Creators can update own courses" on courses
+  for update using (creator_id = auth.uid());
 
 -- Admins can manage all courses
 create policy "Admins can manage all courses" on courses
@@ -401,12 +401,12 @@ create policy "Enrolled users can view lessons" on lessons
     )
   );
 
--- Instructors can manage lessons for their courses
-create policy "Instructors can manage own course lessons" on lessons
+-- Creators can manage lessons for their courses
+create policy "Creators can manage own course lessons" on lessons
   for all using (
     exists (
       select 1 from courses
-      where id = lessons.course_id and instructor_id = auth.uid()
+      where id = lessons.course_id and creator_id = auth.uid()
     )
   );
 
@@ -435,12 +435,12 @@ create policy "Users can enroll in courses" on enrollments
 create policy "Users can update own enrollments" on enrollments
   for update using (user_id = auth.uid());
 
--- Instructors can view enrollments for their courses
-create policy "Instructors can view course enrollments" on enrollments
+-- Creators can view enrollments for their courses
+create policy "Creators can view course enrollments" on enrollments
   for select using (
     exists (
       select 1 from courses
-      where id = enrollments.course_id and instructor_id = auth.uid()
+      where id = enrollments.course_id and creator_id = auth.uid()
     )
   );
 
@@ -468,12 +468,12 @@ create policy "Users can update own progress" on progress
 create policy "Users can update own progress" on progress
   for update using (user_id = auth.uid());
 
--- Instructors can view progress for their courses
-create policy "Instructors can view course progress" on progress
+-- Creators can view progress for their courses
+create policy "Creators can view course progress" on progress
   for select using (
     exists (
       select 1 from courses
-      where id = progress.course_id and instructor_id = auth.uid()
+      where id = progress.course_id and creator_id = auth.uid()
     )
   );
 
@@ -854,7 +854,7 @@ create policy "Users can update own avatars" on storage.objects
 
 2. **Test Database Operations**:
 
-   - Create a course as an instructor
+   - Create a course as a creator
    - Enroll a student in a course
    - Add a review
    - Check that triggers work (ratings, progress, etc.)
@@ -862,7 +862,7 @@ create policy "Users can update own avatars" on storage.objects
 3. **Test RLS Policies**:
    - Verify users can only see their own data
    - Verify admins can see all data
-   - Verify instructors can manage their courses
+   - Verify creators can manage their courses
 
 ## 🚨 Troubleshooting
 

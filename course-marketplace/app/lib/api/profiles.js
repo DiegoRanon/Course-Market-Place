@@ -1,20 +1,49 @@
-import { supabase } from '@/app/lib/supabase';
+import { supabase } from "@/app/lib/supabase";
 
 /**
  * Get a user profile by user ID
  */
 export const getUserProfile = async (userId) => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  try {
+    if (!userId) {
+      console.error("Error getting user profile: userId is required");
+      return null;
+    }
 
-  if (error) {
-    console.error("Error getting user profile:", error);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error(
+        "Error getting user profile:",
+        error.message || JSON.stringify(error)
+      );
+      return null;
+    }
+
+    if (!data) {
+      console.warn(
+        `No profile found for user ID: ${userId}. Profile might not be created yet.`
+      );
+      // Return a default profile object to prevent null reference errors
+      return {
+        id: userId,
+        role: "student", // Default role
+        full_name: "",
+        first_name: "",
+        last_name: "",
+        status: "pending",
+      };
+    }
+
+    return data;
+  } catch (e) {
+    console.error("Exception in getUserProfile:", e.message || e);
     return null;
   }
-  return data;
 };
 
 /**
@@ -47,4 +76,4 @@ export const isAdmin = async (userId) => {
 export const isCreator = async (userId) => {
   const profile = await getUserProfile(userId);
   return profile?.role === "creator" || profile?.role === "admin";
-}; 
+};

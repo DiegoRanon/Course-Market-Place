@@ -1,11 +1,12 @@
 // /components/UploadBox.js
-'use client';
+"use client";
 
 import { useRef, useState } from 'react';
-import { supabase } from '@/app/lib/supabase';
+import { supabase } from '@/utils/supabaseClient';
+
 export default function UploadBox({ userId, courseId }) {
   const fileInputRef = useRef(null);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleUpload = async (event) => {
@@ -16,33 +17,31 @@ export default function UploadBox({ userId, courseId }) {
 
     const filename = `${Date.now()}-${file.name}`;
     const { error } = await supabase.storage
-      .from('videos')
+      .from("videos")
       .upload(`uploads/${filename}`, file);
 
     if (error) {
-      setMessage('❌ Erreur : ' + error.message);
+      setMessage("❌ Erreur : " + error.message);
       setLoading(false);
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('videos')
-      .getPublicUrl(`uploads/${filename}`);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("videos").getPublicUrl(`uploads/${filename}`);
 
-    const { error: insertError } = await supabase
-      .from('lessons')
-      .insert({
-        course_id: courseId,
-        title: file.name.replace(/\.[^/.]+$/, ''),
-        video_url: publicUrl,
-        position: 1,
-        is_free: false,
-      });
+    const { error: insertError } = await supabase.from("lessons").insert({
+      course_id: courseId,
+      title: file.name.replace(/\.[^/.]+$/, ""),
+      video_url: publicUrl,
+      position: 1,
+      is_free: false,
+    });
 
     if (insertError) {
-      setMessage('❌ Erreur base de données : ' + insertError.message);
+      setMessage("❌ Erreur base de données : " + insertError.message);
     } else {
-      setMessage('✅ Vidéo ajoutée avec succès !');
+      setMessage("✅ Vidéo ajoutée avec succès !");
     }
 
     setLoading(false);
@@ -57,7 +56,7 @@ export default function UploadBox({ userId, courseId }) {
         onClick={() => fileInputRef.current.click()}
         disabled={loading}
       >
-        {loading ? 'Chargement...' : 'Choisir une vidéo'}
+        {loading ? "Chargement..." : "Choisir une vidéo"}
       </button>
       <input
         type="file"
