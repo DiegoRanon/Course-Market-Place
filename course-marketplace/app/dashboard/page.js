@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import DashboardSidebar from "../components/dashboard/Sidebar";
 import DashboardCourseCard from "../components/dashboard/CourseCard";
@@ -10,6 +10,36 @@ import {
   filterAndSortEnrolledCourses,
   checkDatabaseSchema,
 } from "../lib/api/courses";
+
+// Custom hook that tracks whether the current page/tab is visible to the user
+function usePageVisibility() {
+  // Default to true if no visibility API
+  const [isVisible, setIsVisible] = useState(
+    typeof document !== "undefined" 
+      ? document.visibilityState === "visible" 
+      : true
+  );
+  
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    
+    const handleVisibilityChange = () => {
+      setIsVisible(document.visibilityState === "visible");
+    };
+    
+    // Initial check
+    handleVisibilityChange();
+    
+    // Add event listener
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+  
+  return isVisible;
+}
 
 // Temporary function to create a sample enrollment for testing
 async function createSampleEnrollment(userId) {
@@ -140,28 +170,31 @@ export default function UserDashboard() {
   const [sortOption, setSortOption] = useState("newest");
   const [user, setUser] = useState(null);
   const [creatingDemo, setCreatingDemo] = useState(false);
+  const isTabVisible = usePageVisibility();
+  const dataFetchRef = useRef(null);
 
-  // Fetch user and enrolled courses
-  useEffect(() => {
-    const fetchUserAndCourses = async () => {
-      try {
-        setIsLoading(true);
+  // Memoize fetch function with useCallback to prevent recreating it on each render
+  const fetchUserAndCourses = useCallback(async () => {
+    try {
+      setIsLoading(true);
 
-        // Check database schema to diagnose issues
-        await checkDatabaseSchema();
+      // Check database schema to diagnose issues
+      await checkDatabaseSchema();
 
-        // Get current user
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+      // Get current user
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-        if (!session) {
-          router.push("/login");
-          return;
-        }
+      if (!session) {
+        router.push("/login");
+        return;
+      }
 
-        setUser(session.user);
+      setUser(session.user);
 
+      // Only fetch data if tab is visible to avoid unnecessary operations
+      if (isTabVisible) {
         // Fetch enrolled courses
         try {
           console.log("Fetching enrolled courses for user:", session.user.id);
@@ -183,16 +216,29 @@ export default function UserDashboard() {
           setCourses([]);
           setFilteredCourses([]);
         }
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setError("Failed to load your dashboard. Please try again later.");
-      } finally {
-        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError("Failed to load your dashboard. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router, isTabVisible, filters, sortOption]);
+
+  // Fetch user and enrolled courses when component mounts or tab becomes visible
+  useEffect(() => {
+    // Don't need to fetch again if we already have courses and tab is just becoming visible
+    if (isTabVisible) {
+      fetchUserAndCourses();
+    }
+
+    return () => {
+      // Cancel any pending data fetches if component unmounts
+      if (dataFetchRef.current) {
+        clearTimeout(dataFetchRef.current);
       }
     };
-
-    fetchUserAndCourses();
-  }, [router]);
+  }, [fetchUserAndCourses, isTabVisible]);
 
   // Apply filters and sorting when they change
   useEffect(() => {
@@ -219,8 +265,8 @@ export default function UserDashboard() {
     setSortOption(e.target.value);
   };
 
-  // Handle creating sample enrollment
-  const handleCreateSample = async () => {
+  // Handle creating sample enrollment with debouncing to prevent multiple clicks
+  const handleCreateSample = useCallback(async () => {
     if (!user || creatingDemo) return;
 
     setCreatingDemo(true);
@@ -245,7 +291,7 @@ export default function UserDashboard() {
     } finally {
       setCreatingDemo(false);
     }
-  };
+  }, [user, creatingDemo, filters, sortOption]);
 
   // Handle checking database schema
   const handleCheckSchema = async () => {

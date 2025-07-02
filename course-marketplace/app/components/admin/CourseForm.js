@@ -9,6 +9,10 @@ import UploadBox from "@/app/components/UploadBox";
 import { useAuth } from "@/app/lib/AuthProvider";
 import VideoPlayer from "@/app/components/VideoPlayer";
 
+// Define Supabase storage URL constants
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const STORAGE_URL = SUPABASE_URL ? `${SUPABASE_URL}/storage/v1/object/public/` : "";
+
 export default function CourseForm() {
   const router = useRouter();
   const { user, profile } = useAuth();
@@ -17,7 +21,8 @@ export default function CourseForm() {
   const [success, setSuccess] = useState(false);
   const [creators, setCreators] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState(""); // For UI preview only
+  const [thumbnailStorageUrl, setThumbnailStorageUrl] = useState(""); // Actual storage URL
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [videoFile, setVideoFile] = useState(null);
@@ -28,6 +33,8 @@ export default function CourseForm() {
     category_id: "",
     price: 0,
     requirements: "",
+    thumbnail_url: "",
+    courseVideo_url: "",
   });
   const [validation, setValidation] = useState({
     title: true,
@@ -61,12 +68,39 @@ export default function CourseForm() {
     fetchCategories();
   }, []);
 
+  // Helper function to ensure URL has proper HTTP prefix
+  const ensureFullUrl = (url) => {
+    if (!url) return "";
+    
+    // If URL already starts with http/https, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // If it's a relative path in the bucket, prepend the storage URL
+    if (url.includes('course-thumbnails/')) {
+      return `${STORAGE_URL}${url}`;
+    }
+    
+    // For other relative paths, assume they're in the course-thumbnails bucket
+    return `${STORAGE_URL}course-thumbnails/${url.replace(/^\//, '')}`;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    // Special handling for thumbnail_url to ensure it has proper HTTP path
+    if (name === 'thumbnail_url' && value) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
 
     // Clear validation error when user starts typing
     if (!validation[name]) {
@@ -112,14 +146,21 @@ export default function CourseForm() {
         .from("course-thumbnails")
         .getPublicUrl(fileName);
 
-      // Set the thumbnail URL to the public URL
-      setThumbnailUrl(publicUrlData.publicUrl);
+      // Store the actual storage URL separately from the preview URL
+      const fullThumbnailUrl = publicUrlData.publicUrl;
+      setThumbnailStorageUrl(fullThumbnailUrl);
+      
+      // Update formData with the actual storage URL
+      setFormData(prev => ({
+        ...prev,
+        thumbnail_url: fullThumbnailUrl
+      }));
 
-      // Also create a preview using FileReader for the UI
+      // Create a preview using FileReader for the UI only
       const reader = new FileReader();
       reader.onload = (e) => {
-        // This is for preview in the UI
-        setThumbnailUrl(e.target.result);
+        // This is for preview in the UI only
+        setThumbnailPreviewUrl(e.target.result);
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -165,6 +206,12 @@ export default function CourseForm() {
 
       // Set the video URL to the public URL
       setVideoUrl(publicUrlData.publicUrl);
+      
+      // Also update formData with the video URL
+      setFormData(prev => ({
+        ...prev,
+        courseVideo_url: publicUrlData.publicUrl
+      }));
 
       // Also create a preview using FileReader for the UI
       const reader = new FileReader();
@@ -218,14 +265,18 @@ export default function CourseForm() {
         status: "draft",
       };
 
-      // Add thumbnail URL if available - use the correct field name
-      if (thumbnailFile && thumbnailUrl && thumbnailUrl.startsWith("http")) {
-        courseData.thumbnail_url = thumbnailUrl;
+      // Use the storage URL for thumbnail, not the data URL
+      if (thumbnailStorageUrl) {
+        courseData.thumbnail_url = thumbnailStorageUrl;
+      } else if (formData.thumbnail_url) {
+        courseData.thumbnail_url = ensureFullUrl(formData.thumbnail_url);
       }
 
-      // Add video URL if available - use courseVideo_url instead of video_url
-      if (videoFile && videoUrl && videoUrl.startsWith("http")) {
+      // Add video URL if available
+      if (videoUrl) {
         courseData.courseVideo_url = videoUrl;
+      } else if (formData.courseVideo_url && formData.courseVideo_url.startsWith("http")) {
+        courseData.courseVideo_url = formData.courseVideo_url;
       }
 
       // Add admin ID if user is admin
@@ -264,13 +315,16 @@ export default function CourseForm() {
             category_id: "",
             price: 0,
             requirements: "",
+            thumbnail_url: "",
+            courseVideo_url: "",
           });
 
           // Reset file states
           setThumbnailFile(null);
-          setThumbnailUrl(null);
+          setThumbnailPreviewUrl("");
+          setThumbnailStorageUrl("");
           setVideoFile(null);
-          setVideoUrl(null);
+          setVideoUrl("");
 
           // Redirect after a delay
           setTimeout(() => {
@@ -292,13 +346,16 @@ export default function CourseForm() {
         category_id: "",
         price: 0,
         requirements: "",
+        thumbnail_url: "",
+        courseVideo_url: "",
       });
 
       // Reset file states
       setThumbnailFile(null);
-      setThumbnailUrl(null);
+      setThumbnailPreviewUrl("");
+      setThumbnailStorageUrl("");
       setVideoFile(null);
-      setVideoUrl(null);
+      setVideoUrl("");
 
       // Redirect after a delay
       setTimeout(() => {
@@ -464,11 +521,32 @@ export default function CourseForm() {
               <p className="text-sm text-gray-500 mt-1">
                 Recommended size: 1280x720px (16:9 ratio)
               </p>
+              <div className="mt-4">
+                <label className="block mb-2 text-sm font-medium">
+                  Thumbnail URL
+                </label>
+                <input
+                  type="text"
+                  name="thumbnail_url"
+                  value={formData.thumbnail_url}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Enter thumbnail URL (if not uploading)"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  URLs should start with http:// or https:// for proper display
+                </p>
+                {thumbnailStorageUrl && (
+                  <p className="text-xs text-green-600 mt-1">
+                    Storage URL: {thumbnailStorageUrl}
+                  </p>
+                )}
+              </div>
             </div>
-            {thumbnailUrl && (
+            {thumbnailPreviewUrl && (
               <div className="relative aspect-video border rounded overflow-hidden">
                 <img
-                  src={thumbnailUrl}
+                  src={thumbnailPreviewUrl}
                   alt="Thumbnail Preview"
                   className="object-cover w-full h-full"
                 />
@@ -494,6 +572,24 @@ export default function CourseForm() {
               <p className="text-sm text-gray-500 mt-1">
                 Accepted formats: MP4, WebM, OGG (Max 500MB)
               </p>
+              <div className="mt-4">
+                <label className="block mb-2 text-sm font-medium">
+                  Video URL
+                </label>
+                <input
+                  type="text"
+                  name="courseVideo_url"
+                  value={formData.courseVideo_url}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Enter video URL (if not uploading)"
+                />
+                {videoUrl && (
+                  <p className="text-xs text-green-600 mt-1">
+                    Storage URL: {videoUrl}
+                  </p>
+                )}
+              </div>
             </div>
             {videoUrl && (
               <div className="relative aspect-video border rounded overflow-hidden">

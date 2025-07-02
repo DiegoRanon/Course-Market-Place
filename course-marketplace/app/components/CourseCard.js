@@ -1,13 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from "../../components/ui/card";
+import { useAuth } from "../lib/AuthProvider";
+import { checkEnrollmentStatus } from "../lib/api/enrollments";
 
 export default function CourseCard({
   course,
@@ -19,10 +23,32 @@ export default function CourseCard({
   buttonText = "Enroll Now",
   onButtonClick = null,
 }) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [isEnrolled, setIsEnrolled] = useState(false);
+
   // Custom number formatting function to avoid hydration mismatch
   const formatNumber = (num) => {
     return num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
+
+  // Check enrollment status when component mounts
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      if (!user || !course.id) return;
+      
+      try {
+        const { data, error } = await checkEnrollmentStatus(user.id, course.id);
+        if (data && !error) {
+          setIsEnrolled(true);
+        }
+      } catch (err) {
+        console.error("Error checking enrollment:", err);
+      }
+    };
+
+    checkEnrollment();
+  }, [user, course.id]);
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -38,6 +64,18 @@ export default function CourseCard({
         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
       </svg>
     ));
+  };
+
+  const handleCardClick = (e) => {
+    e.preventDefault();
+    
+    // If user is enrolled, go to learning page
+    if (isEnrolled) {
+      router.push(`/learn/${course.id}`);
+    } else {
+      // Otherwise go to course details page
+      router.push(`/courses/${course.id}`);
+    }
   };
 
   const handleButtonClick = (e) => {
@@ -82,6 +120,12 @@ export default function CourseCard({
         {showCategory && course.category_name && (
           <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-sm font-medium">
             {course.category_name}
+          </div>
+        )}
+        
+        {isEnrolled && (
+          <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
+            Enrolled
           </div>
         )}
       </div>
@@ -147,12 +191,12 @@ export default function CourseCard({
   );
 
   return course.id && !showButton ? (
-    <Link
-      href={`${linkPath}/${course.id}`}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col transition-transform hover:shadow-lg hover:-translate-y-1"
+    <div 
+      onClick={handleCardClick}
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col transition-transform hover:shadow-lg hover:-translate-y-1 cursor-pointer"
     >
       {courseContent}
-    </Link>
+    </div>
   ) : (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-xl transition-shadow">
       {courseContent}

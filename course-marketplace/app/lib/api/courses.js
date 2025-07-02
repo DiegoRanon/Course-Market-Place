@@ -81,9 +81,9 @@ export const getCourseById = async (courseId) => {
     }
 
     // If join query failed (likely due to RLS policies), try alternative approach
-    console.error("Error fetching course with join:", error);
-    console.log("Trying alternative approach without join...");
-
+    // Log as info rather than error to avoid scaring users
+    console.log("Join query approach failed, trying alternative approach...");
+    
     // Method 2: Fetch just the course data first
     const { data: courseData, error: courseError } = await supabase
       .from("courses")
@@ -128,6 +128,8 @@ export const getCourseById = async (courseId) => {
           "Error fetching creator profile with REST API:",
           profileErr
         );
+        // Don't fail the whole request if just the profile fetch fails
+        // Just continue without the profile data
       }
     }
 
@@ -272,7 +274,7 @@ export async function getEnrolledCourses(userId) {
       return [];
     }
 
-    // First, get all enrollments for this user
+    // Get all enrollments for this user without filtering by status
     const { data: enrollments, error: enrollmentsError } = await supabase
       .from("enrollments")
       .select("*, course:course_id(*)")

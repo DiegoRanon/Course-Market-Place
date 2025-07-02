@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -15,27 +15,32 @@ export default function Navigation() {
   const dropdownRef = useRef(null);
   const router = useRouter();
 
+  // Memoize event handlers with useCallback to prevent recreating them on each render
+  const handleClickOutside = useCallback((event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsProfileDropdownOpen(false);
+    }
+  }, []);
+
+  const handleEscapeKey = useCallback((event) => {
+    if (event.key === "Escape") {
+      setIsProfileDropdownOpen(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsProfileDropdownOpen(false);
-      }
-    };
-
-    const handleEscapeKey = (event) => {
-      if (event.key === "Escape") {
-        setIsProfileDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscapeKey);
+    // Only add listeners when dropdown is open
+    if (isProfileDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscapeKey);
+    }
 
     return () => {
+      // Clean up listeners when component unmounts or dropdown closes
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscapeKey);
     };
-  }, []);
+  }, [isProfileDropdownOpen, handleClickOutside, handleEscapeKey]);
 
   // Reset profile image error when profile changes
   useEffect(() => {

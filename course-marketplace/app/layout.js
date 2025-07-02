@@ -1,35 +1,36 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "./components/Navigation";
-import { AuthProvider } from "@/app/lib/AuthProvider";
+import { AuthProvider } from "./lib/AuthProvider";
 import { ThemeProvider } from "@/components/theme-provider";
+import Footer from "./components/Footer";
+import PageVisibilityManager from "./components/PageVisibilityManager";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-sans",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const robotoMono = Roboto_Mono({
   subsets: ["latin"],
+  variable: "--font-mono",
 });
 
 export const metadata = {
   title: "Course Marketplace",
-  description:
-    "Learn from the best instructors with our comprehensive online courses",
+  description: "Learn new skills and advance your career",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <Navigation />
-            {children}
+            <PageVisibilityManager />
+            <main className="flex-grow">{children}</main>
+            <Footer />
           </AuthProvider>
         </ThemeProvider>
       </body>

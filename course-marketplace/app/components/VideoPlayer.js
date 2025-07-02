@@ -10,6 +10,8 @@ import {
   VolumeX,
   Maximize,
   Minimize,
+  AlertCircle,
+  Loader,
 } from "lucide-react";
 
 export default function VideoPlayer({
@@ -19,6 +21,7 @@ export default function VideoPlayer({
   userId,
   onProgress,
   isCourseVideo = false,
+  autoPlay = false,
 }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
@@ -32,6 +35,8 @@ export default function VideoPlayer({
   const [error, setError] = useState(null);
   const [showControls, setShowControls] = useState(true);
   const [secureVideoUrl, setSecureVideoUrl] = useState(null);
+  const [isTabVisible, setIsTabVisible] = useState(true);
+  const [loadingPhase, setLoadingPhase] = useState("initializing"); // initializing, fetching, buffering, ready
 
   // Timer for hiding controls
   const controlsTimerRef = useRef(null);
@@ -39,6 +44,11 @@ export default function VideoPlayer({
   const saveProgressTimerRef = useRef(null);
   // Last reported progress time
   const lastReportedTimeRef = useRef(0);
+  // Was playing before tab became hidden
+  const wasPlayingRef = useRef(false);
+
+  // Show/hide controls on mouse movement - with throttling
+  const lastMoveTimeRef = useRef(0);
 
   useEffect(() => {
     if (videoUrl) {
@@ -46,6 +56,7 @@ export default function VideoPlayer({
     } else {
       setError("No video URL provided");
       setIsLoading(false);
+      setLoadingPhase("error");
     }
 
     return () => {
@@ -56,15 +67,53 @@ export default function VideoPlayer({
     };
   }, [videoUrl]);
 
+  // Handle Page Visibility API for tab switching
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const isVisible = document.visibilityState === "visible";
+      setIsTabVisible(isVisible);
+      
+      // If tab becomes hidden, pause video and store playing state
+      if (!isVisible && videoRef.current) {
+        wasPlayingRef.current = !videoRef.current.paused;
+        if (wasPlayingRef.current) {
+          videoRef.current.pause();
+        }
+        
+        // Clear any active timers when tab is hidden
+        if (controlsTimerRef.current) {
+          clearTimeout(controlsTimerRef.current);
+        }
+        if (saveProgressTimerRef.current) {
+          clearInterval(saveProgressTimerRef.current);
+        }
+      } 
+      // If tab becomes visible again and was playing before, resume
+      else if (isVisible && videoRef.current && wasPlayingRef.current) {
+        videoRef.current.play()
+          .catch(err => console.log("Could not auto-resume video:", err));
+        wasPlayingRef.current = false;
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   // Get secure URL for video
   const getVideoUrl = async () => {
     try {
       setIsLoading(true);
+      setLoadingPhase("fetching");
       setError(null);
 
       if (!videoUrl) {
         setError("No video URL provided");
         setIsLoading(false);
+        setLoadingPhase("error");
         return;
       }
 
@@ -74,7 +123,8 @@ export default function VideoPlayer({
       if (videoUrl.startsWith("http")) {
         console.log("Using direct URL:", videoUrl);
         setSecureVideoUrl(videoUrl);
-        setIsLoading(false);
+        setIsLoading(true); // Keep loading until the video is ready to play
+        setLoadingPhase("buffering");
         return;
       }
 
@@ -87,7 +137,8 @@ export default function VideoPlayer({
         const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucketName}/${videoUrl}`;
         console.log("Generated public URL:", publicUrl);
         setSecureVideoUrl(publicUrl);
-        setIsLoading(false);
+        setIsLoading(true); // Keep loading until the video is ready to play
+        setLoadingPhase("buffering");
         return;
       }
 
@@ -100,30 +151,65 @@ export default function VideoPlayer({
         console.error("Error getting signed URL:", error);
         setError(`Error loading video: ${error.message}`);
         setIsLoading(false);
+        setLoadingPhase("error");
         return;
       }
 
       console.log("Generated signed URL for video");
       setSecureVideoUrl(data.signedUrl);
-      setIsLoading(false);
+      setIsLoading(true); // Keep loading until the video is ready to play
+      setLoadingPhase("buffering");
     } catch (err) {
       console.error("Error getting video URL:", err);
       setError(`Error loading video: ${err.message}`);
       setIsLoading(false);
+      setLoadingPhase("error");
     }
   };
 
   // Initialize video event listeners
   useEffect(() => {
     const videoElement = videoRef.current;
-    if (!videoElement) return;
+    if (!videoElement || !secureVideoUrl) return;
 
     const handleLoadedMetadata = () => {
       setDuration(videoElement.duration);
-      setIsLoading(false);
-
+      
       // Check if we have a saved progress
       loadProgress();
+    };
+
+    const handleCanPlay = () => {
+      setIsLoading(false);
+      setLoadingPhase("ready");
+      
+      // If autoPlay is enabled, start playing
+      if (autoPlay) {
+        videoElement.play()
+          .then(() => setIsPlaying(true))
+          .catch(err => {
+            console.error("Error auto-playing video:", err);
+            // Don't set error state as the video is still playable manually
+          });
+      }
+    };
+    
+    const handleWaiting = () => {
+      setIsLoading(true);
+      setLoadingPhase("buffering");
+    };
+
+    const handlePlaying = () => {
+      setIsLoading(false);
+      setLoadingPhase("ready");
+      setIsPlaying(true);
+    };
+
+    const handleError = (event) => {
+      console.error("Video error:", videoElement.error);
+      setError(`Failed to load video: ${videoElement.error?.message || "Unknown error"}`);
+      setIsLoading(false);
+      setLoadingPhase("error");
     };
 
     const handleTimeUpdate = () => {
@@ -157,15 +243,23 @@ export default function VideoPlayer({
     };
 
     videoElement.addEventListener("loadedmetadata", handleLoadedMetadata);
+    videoElement.addEventListener("canplay", handleCanPlay);
+    videoElement.addEventListener("waiting", handleWaiting);
+    videoElement.addEventListener("playing", handlePlaying);
+    videoElement.addEventListener("error", handleError);
     videoElement.addEventListener("timeupdate", handleTimeUpdate);
     videoElement.addEventListener("ended", handleEnded);
 
     return () => {
       videoElement.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      videoElement.removeEventListener("canplay", handleCanPlay);
+      videoElement.removeEventListener("waiting", handleWaiting);
+      videoElement.removeEventListener("playing", handlePlaying);
+      videoElement.removeEventListener("error", handleError);
       videoElement.removeEventListener("timeupdate", handleTimeUpdate);
       videoElement.removeEventListener("ended", handleEnded);
     };
-  }, [secureVideoUrl, userId, lessonId]);
+  }, [secureVideoUrl, userId, lessonId, autoPlay]);
 
   // Load saved progress
   const loadProgress = async () => {
@@ -206,13 +300,17 @@ export default function VideoPlayer({
 
   // Play/pause
   const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
+    } else {
+      video.play().catch((err) => {
+        console.error("Error playing video:", err);
+      });
+      setIsPlaying(true);
     }
   };
 
@@ -311,9 +409,17 @@ export default function VideoPlayer({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Show/hide controls on mouse movement
+  // Show/hide controls on mouse movement - with throttling
   const handleMouseMove = () => {
-    setShowControls(true);
+    // Throttle the mouse move handler to prevent excessive updates
+    const now = Date.now();
+    if (now - lastMoveTimeRef.current < 100) return; // Only process every 100ms
+    lastMoveTimeRef.current = now;
+
+    // Only update state if controls are currently hidden
+    if (!showControls) {
+      setShowControls(true);
+    }
 
     // Clear any existing timer
     if (controlsTimerRef.current) {
@@ -322,10 +428,70 @@ export default function VideoPlayer({
 
     // Set a new timer to hide controls after 3 seconds
     controlsTimerRef.current = setTimeout(() => {
-      if (isPlaying) {
+      if (isPlaying && isTabVisible) { // Only hide when tab is visible and playing
         setShowControls(false);
       }
     }, 3000);
+  };
+
+  // Helper to hide controls with delay
+  const hideControlsTimer = () => {
+    if (controlsTimerRef.current) {
+      clearTimeout(controlsTimerRef.current);
+    }
+    controlsTimerRef.current = setTimeout(() => {
+      if (isPlaying && isTabVisible) { // Only hide when tab is visible and playing
+        setShowControls(false);
+      }
+    }, 3000);
+  };
+
+  // Render loading state
+  const renderLoadingState = () => {
+    let message = "";
+    
+    switch(loadingPhase) {
+      case "fetching":
+        message = "Preparing video...";
+        break;
+      case "buffering":
+      default:
+        message = "Loading video...";
+    }
+    
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 z-10" data-testid="video-loading">
+        <div className="text-center">
+          <Loader className="w-10 h-10 mx-auto mb-4 text-blue-500 animate-spin" />
+          <p className="text-white text-lg">{message}</p>
+        </div>
+      </div>
+    );
+  };
+
+  // Render error state
+  const renderErrorState = () => {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 z-10">
+        <div className="text-center max-w-sm mx-auto p-4">
+          <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+          <p className="text-white text-lg mb-4">
+            {error || "Failed to load video"}
+          </p>
+          <button 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            onClick={() => {
+              setError(null);
+              setIsLoading(true);
+              setLoadingPhase("fetching");
+              getVideoUrl();
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   };
 
   if (error) {
@@ -356,24 +522,9 @@ export default function VideoPlayer({
         }
       }}
     >
-      {isLoading && (
-        <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-        </div>
-      )}
+      {isLoading && renderLoadingState()}
 
-      {error && (
-        <div className="relative bg-black text-white flex items-center justify-center h-full w-full min-h-[200px]">
-          <div className="text-center p-4">
-            <p className="text-red-500 mb-2" data-testid="error-title">
-              Error loading video
-            </p>
-            <p className="text-sm" data-testid="error-message">
-              {error}
-            </p>
-          </div>
-        </div>
-      )}
+      {error && !isLoading && renderErrorState()}
 
       {!error && (
         <video

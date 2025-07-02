@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { supabase } from "@/app/lib/supabase";
 import {
   signInWithPassword,
@@ -23,40 +23,93 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const authSubscriptionRef = useRef(null);
+  const [isTabVisible, setIsTabVisible] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Get initial session
     const getInitialSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        
+        if (isMounted) {
+          setUser(session?.user ?? null);
 
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+          if (session?.user) {
+            await fetchProfile(session.user.id);
+          }
+
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error getting initial session:", error);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-
-      setLoading(false);
     };
 
     getInitialSession();
 
     // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
+    const setupAuthListener = () => {
+      // Clean up previous subscription if it exists
+      if (authSubscriptionRef.current) {
+        authSubscriptionRef.current.unsubscribe();
       }
+      
+      // Only set up listener if tab is visible
+      if (isTabVisible) {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (isMounted) {
+            setUser(session?.user ?? null);
 
-      setLoading(false);
-    });
+            if (session?.user) {
+              await fetchProfile(session.user.id);
+            } else {
+              setProfile(null);
+            }
 
-    return () => subscription.unsubscribe();
+            setLoading(false);
+          }
+        });
+        
+        authSubscriptionRef.current = subscription;
+      }
+    };
+
+    setupAuthListener();
+
+    // Page Visibility API handler
+    const handleVisibilityChange = () => {
+      const visible = document.visibilityState === "visible";
+      setIsTabVisible(visible);
+      
+      // If becoming visible and we don't have an active subscription, set it up
+      if (visible && !authSubscriptionRef.current) {
+        setupAuthListener();
+      } 
+      // If becoming hidden, clean up subscription
+      else if (!visible && authSubscriptionRef.current) {
+        authSubscriptionRef.current.unsubscribe();
+        authSubscriptionRef.current = null;
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      isMounted = false;
+      // Clean up auth subscription
+      if (authSubscriptionRef.current) {
+        authSubscriptionRef.current.unsubscribe();
+      }
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   const fetchProfile = async (userId) => {
