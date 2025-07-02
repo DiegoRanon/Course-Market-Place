@@ -34,7 +34,7 @@ export default function CourseForm() {
     price: 0,
     requirements: "",
     thumbnail_url: "",
-    courseVideo_url: "",
+    coursevideo_url: "",
   });
   const [validation, setValidation] = useState({
     title: true,
@@ -210,7 +210,7 @@ export default function CourseForm() {
       // Also update formData with the video URL
       setFormData(prev => ({
         ...prev,
-        courseVideo_url: publicUrlData.publicUrl
+        coursevideo_url: publicUrlData.publicUrl
       }));
 
       // Also create a preview using FileReader for the UI
@@ -262,7 +262,6 @@ export default function CourseForm() {
         requirements_json: formData.requirements
           ? JSON.stringify(formData.requirements.split("\n").filter(Boolean))
           : JSON.stringify([]),
-        status: "draft",
       };
 
       // Use the storage URL for thumbnail, not the data URL
@@ -274,9 +273,9 @@ export default function CourseForm() {
 
       // Add video URL if available
       if (videoUrl) {
-        courseData.courseVideo_url = videoUrl;
-      } else if (formData.courseVideo_url && formData.courseVideo_url.startsWith("http")) {
-        courseData.courseVideo_url = formData.courseVideo_url;
+        courseData.coursevideo_url = videoUrl;
+      } else if (formData.coursevideo_url && formData.coursevideo_url.startsWith("http")) {
+        courseData.coursevideo_url = formData.coursevideo_url;
       }
 
       // Add admin ID if user is admin
@@ -316,7 +315,7 @@ export default function CourseForm() {
             price: 0,
             requirements: "",
             thumbnail_url: "",
-            courseVideo_url: "",
+            coursevideo_url: "",
           });
 
           // Reset file states
@@ -347,7 +346,7 @@ export default function CourseForm() {
         price: 0,
         requirements: "",
         thumbnail_url: "",
-        courseVideo_url: "",
+        coursevideo_url: "",
       });
 
       // Reset file states
@@ -578,8 +577,8 @@ export default function CourseForm() {
                 </label>
                 <input
                   type="text"
-                  name="courseVideo_url"
-                  value={formData.courseVideo_url}
+                  name="coursevideo_url"
+                  value={formData.coursevideo_url}
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded"
                   placeholder="Enter video URL (if not uploading)"

@@ -27,12 +27,11 @@ export const getAllCategories = async () => {
  */
 export const getPublishedCourses = async () => {
   try {
-    console.log("Fetching published courses...");
+    console.log("Fetching all courses...");
 
     const { data, error } = await supabase
       .from("courses")
       .select("*")
-      .eq("status", "published")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -238,8 +237,7 @@ export async function getAllCourses() {
   try {
     const { data, error } = await supabase
       .from("courses")
-      .select("*")
-      .eq("is_published", true);
+      .select("*");
 
     if (error) {
       console.error("Error fetching courses:", error);
