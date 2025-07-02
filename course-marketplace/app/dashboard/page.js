@@ -336,21 +336,14 @@ export default function UserDashboard() {
         My Dashboard
       </h1>
 
-<<<<<<< HEAD
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
             Enrolled Courses
-         </h3>
+          </h3>
           <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
             5
           </p>
-=======
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar - visible on large screens, hidden on mobile */}
-        <div className="hidden lg:block">
-          <DashboardSidebar />
->>>>>>> a03a26d2af55c5f33deeae033e3e72b8479fe88e
         </div>
 
         {/* Main content */}

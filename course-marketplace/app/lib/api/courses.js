@@ -1,6 +1,28 @@
 import { supabase } from "@/app/lib/supabase";
 
 /**
+ * Get all categories from the database
+ */
+export const getAllCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .order("name");
+
+    if (error) {
+      console.error("Error fetching categories:", error);
+      throw error;
+    }
+
+    return { data: data || [], error: null };
+  } catch (err) {
+    console.error("Error in getAllCategories:", err);
+    return { data: [], error: err.message };
+  }
+};
+
+/**
  * Get a list of all published courses
  */
 export const getPublishedCourses = async () => {
@@ -31,17 +53,85 @@ export const getPublishedCourses = async () => {
  */
 export const getCourseById = async (courseId) => {
   try {
+    console.log(`Fetching course with ID: ${courseId}`);
+
+    // Method 1: Fetch course with creator profile information using a join
     const { data, error } = await supabase
+      .from("courses")
+      .select(
+        `
+        *,
+        creator:profiles(*)
+      `
+      )
+      .eq("id", courseId)
+      .single();
+
+    // If successful, process and return the data
+    if (!error && data) {
+      console.log("Course data retrieved successfully with join query");
+
+      // If creator is returned as an array (due to join), extract the first item
+      if (data && Array.isArray(data.creator)) {
+        data.creator = data.creator[0] || null;
+        console.log("Creator extracted from array:", data.creator);
+      }
+
+      return { data, error: null };
+    }
+
+    // If join query failed (likely due to RLS policies), try alternative approach
+    console.error("Error fetching course with join:", error);
+    console.log("Trying alternative approach without join...");
+
+    // Method 2: Fetch just the course data first
+    const { data: courseData, error: courseError } = await supabase
       .from("courses")
       .select("*")
       .eq("id", courseId)
       .single();
 
-    if (error) {
-      throw new Error(error.message);
+    if (courseError) {
+      console.error("Error fetching course data:", courseError);
+      throw new Error(courseError.message);
     }
 
-    return { data, error: null };
+    // If course has a creator_id, try to fetch the creator profile separately
+    if (courseData && courseData.creator_id) {
+      console.log(`Fetching creator profile for ID: ${courseData.creator_id}`);
+
+      // Try using the REST API endpoint (bypasses RLS)
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${courseData.creator_id}`,
+          {
+            headers: {
+              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const profileData = await response.json();
+          if (profileData && profileData.length > 0) {
+            console.log("Creator profile found with REST API:", profileData[0]);
+            courseData.creator = profileData[0];
+          } else {
+            console.log("No creator profile found with REST API");
+          }
+        } else {
+          console.error("REST API request failed:", response.statusText);
+        }
+      } catch (profileErr) {
+        console.error(
+          "Error fetching creator profile with REST API:",
+          profileErr
+        );
+      }
+    }
+
+    return { data: courseData, error: null };
   } catch (err) {
     console.error(`Error fetching course with ID ${courseId}:`, err);
     return { data: null, error: err.message };
@@ -75,6 +165,25 @@ export const getCoursesByCreator = async (creatorId) => {
  */
 export const createCourse = async (courseData) => {
   try {
+    console.log("Creating course with data:", courseData);
+
+    // Handle requirements field - store in description if column doesn't exist
+    if (courseData.requirements_json) {
+      // If we're using the workaround with requirements_json
+      const requirementsArray = JSON.parse(courseData.requirements_json);
+
+      // Append requirements to the description
+      if (requirementsArray && requirementsArray.length > 0) {
+        courseData.description =
+          courseData.description +
+          "\n\nRequirements:\n" +
+          requirementsArray.map((req) => `- ${req}`).join("\n");
+      }
+
+      // Remove the requirements_json field before sending to the database
+      delete courseData.requirements_json;
+    }
+
     const { data, error } = await supabase
       .from("courses")
       .insert(courseData)
@@ -82,13 +191,18 @@ export const createCourse = async (courseData) => {
       .single();
 
     if (error) {
-      throw new Error(error.message);
+      console.error("Error in createCourse:", error);
+      return { data: null, error };
     }
 
     return { data, error: null };
-  } catch (err) {
-    console.error("Error creating course:", err);
-    return { data: null, error: err.message };
+  } catch (error) {
+    console.error("Error creating course:", error);
+    return {
+      error: {
+        message: error.message || "Failed to create course",
+      },
+    };
   }
 };
 

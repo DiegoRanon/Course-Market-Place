@@ -47,26 +47,31 @@ export default function CourseCard({
     }
   };
 
+  // Function to get the proper thumbnail URL
+  const getThumbnailUrl = (url) => {
+    if (!url) return null;
+
+    // If it's already a full URL
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    // If it's a storage path in course-thumbnails bucket
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/course-thumbnails/${url}`;
+  };
+
   const courseContent = (
     <>
       <div className="relative h-48">
-        {course.image_url || course.image ? (
+        {course.thumbnail_url ? (
           <div className="relative w-full h-full">
-            {course.image_url ? (
-              <Image
-                src={course.image_url}
-                alt={course.title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                style={{ objectFit: "cover" }}
-              />
-            ) : (
-              <img
-                src={course.image}
-                alt={course.title}
-                className="w-full h-full object-cover"
-              />
-            )}
+            <Image
+              src={getThumbnailUrl(course.thumbnail_url)}
+              alt={course.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              style={{ objectFit: "cover" }}
+            />
           </div>
         ) : (
           <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">

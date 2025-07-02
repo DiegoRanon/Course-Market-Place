@@ -77,3 +77,36 @@ export const isCreator = async (userId) => {
   const profile = await getUserProfile(userId);
   return profile?.role === "creator" || profile?.role === "admin";
 };
+
+/**
+ * Get all creators (users with role "creator" only)
+ */
+export const getAllCreators = async () => {
+  try {
+    // Get users with role "creator" only
+    const { data: creators, error: creatorsError } = await supabase
+      .from("profiles")
+      .select("id, full_name, first_name, last_name, avatar_url")
+      .eq("role", "creator");
+
+    if (creatorsError) {
+      console.error("Error fetching creators:", creatorsError);
+      return { data: [], error: creatorsError };
+    }
+
+    // Format names if needed
+    const formattedCreators = (creators || []).map((creator) => ({
+      ...creator,
+      // If full_name is empty, use first_name + last_name
+      full_name:
+        creator.full_name ||
+        `${creator.first_name || ""} ${creator.last_name || ""}`.trim() ||
+        "Unknown Creator",
+    }));
+
+    return { data: formattedCreators, error: null };
+  } catch (e) {
+    console.error("Exception in getAllCreators:", e);
+    return { data: [], error: e };
+  }
+};

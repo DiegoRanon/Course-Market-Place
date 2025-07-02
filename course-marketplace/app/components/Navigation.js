@@ -5,11 +5,13 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/app/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import Image from "next/image";
 
 export default function Navigation() {
   const { user, profile, loading, signOut, isAdmin, isCreator } = useAuth();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [profileImageError, setProfileImageError] = useState(false);
   const dropdownRef = useRef(null);
   const router = useRouter();
 
@@ -34,6 +36,13 @@ export default function Navigation() {
       document.removeEventListener("keydown", handleEscapeKey);
     };
   }, []);
+
+  // Reset profile image error when profile changes
+  useEffect(() => {
+    if (profile) {
+      setProfileImageError(false);
+    }
+  }, [profile]);
 
   const getDisplayName = () => {
     if (!user) return "";
@@ -71,6 +80,15 @@ export default function Navigation() {
 
   // Determine if user has creator role
   const userIsCreator = profile?.role === "creator" || userIsAdmin;
+
+  // Handle profile image error
+  const handleProfileImageError = () => {
+    console.log("Profile image failed to load");
+    setProfileImageError(true);
+  };
+
+  // Determine if we have a valid profile image
+  const hasProfileImage = profile?.avatar_url && !profileImageError;
 
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
@@ -179,10 +197,22 @@ export default function Navigation() {
                   onClick={toggleProfileDropdown}
                   className="flex items-center space-x-2 text-gray-700 hover:text-purple-600 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded-md px-3 py-2"
                 >
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-purple-600 font-semibold text-sm">
-                      {getDisplayName().charAt(0).toUpperCase()}
-                    </span>
+                  {/* Profile Picture or Fallback */}
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-purple-100">
+                    {hasProfileImage ? (
+                      <Image
+                        src={profile.avatar_url}
+                        alt="Profile"
+                        width={32}
+                        height={32}
+                        className="object-cover w-full h-full"
+                        onError={handleProfileImageError}
+                      />
+                    ) : (
+                      <span className="text-purple-600 font-semibold text-sm">
+                        {getDisplayName().charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <span className="hidden sm:block">{getDisplayName()}</span>
                   <svg
@@ -207,12 +237,35 @@ export default function Navigation() {
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                     <div className="py-1">
                       <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">
-                          {getDisplayName()}
-                        </p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <div className="flex items-center space-x-3">
+                          {/* Profile Picture in Dropdown */}
+                          <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-purple-100">
+                            {hasProfileImage ? (
+                              <Image
+                                src={profile.avatar_url}
+                                alt="Profile"
+                                width={40}
+                                height={40}
+                                className="object-cover w-full h-full"
+                                onError={handleProfileImageError}
+                              />
+                            ) : (
+                              <span className="text-purple-600 font-semibold text-lg">
+                                {getDisplayName().charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {getDisplayName()}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
                         {profile?.role && (
-                          <p className="text-xs text-gray-500 mt-1 capitalize">
+                          <p className="text-xs text-gray-500 mt-2 capitalize">
                             Role: {profile.role}
                           </p>
                         )}

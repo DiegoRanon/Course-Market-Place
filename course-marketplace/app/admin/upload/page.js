@@ -1,48 +1,41 @@
-// /app/admin/upload/page.js (App Router + RSC + Supabase)
-<<<<<<< HEAD
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import UploadBox from '@/app/components/UploadBox';
-=======
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
-import UploadBox from "@/app/components/UploadBox";
->>>>>>> a03a26d2af55c5f33deeae033e3e72b8479fe88e
+"use client";
 
-export default async function UploadPage() {
-  const supabase = createServerComponentClient({ cookies });
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+import { useAuth } from "@/app/lib/AuthProvider";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import CourseForm from "@/app/components/admin/CourseForm";
 
-  /*if (!user) {
-    //return <div className="p-8 text-red-600">Vous devez être connecté</div>;
-  }
+export default function UploadPage() {
+  const { user, profile } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
-  <UploadBox userId={user.id} />
+  // Check if user is admin
+  useEffect(() => {
+    if (!loading && (!user || profile?.role !== "admin")) {
+      router.push("/unauthorized");
+    }
+  }, [user, profile, loading, router]);
 
-  const { data: profile } = await supabase
-    .from("profiles") // ou "users" selon ta DB
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  // Set loading to false once auth is checked
+  useEffect(() => {
+    if (user !== undefined && profile !== undefined) {
+      setLoading(false);
+    }
+  }, [user, profile]);
 
-<<<<<<< HEAD
-  if (profile?.role !== 'admin') {
-    return <div className="p-8 text-red-600">Accès réservé aux administrateurs</div>;
-  }*/
-=======
-  if (profile?.role !== "admin") {
+  if (loading) {
     return (
-      <div className="p-8 text-red-600">Accès réservé aux administrateurs</div>
+      <div className="p-8 flex justify-center">
+        <div className="animate-pulse">Loading...</div>
+      </div>
     );
   }
->>>>>>> a03a26d2af55c5f33deeae033e3e72b8479fe88e
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Importer une vidéo</h1>
-<UploadBox />
+      <h1 className="text-2xl font-bold mb-4">Upload Course</h1>
+      <CourseForm />
     </div>
   );
 }

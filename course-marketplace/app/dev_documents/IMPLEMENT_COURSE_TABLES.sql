@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS courses (
   description text,
   short_description text,
   thumbnail_url text,
+  courseVideo_url text,
+  video_url text,
   category_id uuid REFERENCES categories(id) ON DELETE SET NULL,
   creator_id uuid REFERENCES profiles(id),
   price numeric(10, 2) DEFAULT 0,
