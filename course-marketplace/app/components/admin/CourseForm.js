@@ -13,6 +13,23 @@ import VideoPlayer from "@/app/components/VideoPlayer";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const STORAGE_URL = SUPABASE_URL ? `${SUPABASE_URL}/storage/v1/object/public/` : "";
 
+// Add ConfirmationDialog component
+function ConfirmationDialog({ isOpen, onClose, onConfirm }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50" role="dialog" aria-modal="true">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+        <h2 className="text-xl font-bold mb-4">Confirm Course Submission</h2>
+        <p className="mb-4">Are you sure you want to submit this course for publishing?</p>
+        <div className="flex space-x-2 justify-end">
+          <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+          <button onClick={onConfirm} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirm</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CourseForm() {
   const router = useRouter();
   const { user, profile } = useAuth();
@@ -36,11 +53,19 @@ export default function CourseForm() {
     thumbnail_url: "",
     coursevideo_url: "",
   });
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [courseDataToSubmit, setCourseDataToSubmit] = useState(null);
+
+  // Extend validation state
   const [validation, setValidation] = useState({
     title: true,
     description: true,
     creator_id: true,
     category_id: true,
+    price: true,
+    requirements: true,
+    thumbnail_url: true,
+    coursevideo_url: true
   });
 
   useEffect(() => {
@@ -232,140 +257,100 @@ export default function CourseForm() {
       description: !!formData.description.trim(),
       creator_id: !!formData.creator_id,
       category_id: !!formData.category_id,
+      price: formData.price !== '' && !isNaN(parseFloat(formData.price)),
+      requirements: !!formData.requirements.trim(),
+      thumbnail_url: !!(thumbnailStorageUrl || formData.thumbnail_url.trim()),
+      coursevideo_url: !!(videoUrl || formData.coursevideo_url.trim())
     };
-
     setValidation(newValidation);
     return Object.values(newValidation).every(Boolean);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
-    setSuccess(false);
 
-    // Validate form
-    const validationErrors = validateForm();
-    if (Object.values(validationErrors).some((valid) => !valid)) {
-      setLoading(false);
+    const isValid = validateForm();
+    if (!isValid) {
       return;
     }
 
+    // Prepare course data
+    const courseData = {
+      title: formData.title,
+      description: formData.description,
+      creator_id: formData.creator_id,
+      category_id: formData.category_id,
+      price: parseFloat(formData.price) || 0,
+      requirements: formData.requirements
+        ? JSON.stringify(formData.requirements.split("\n").filter(Boolean))
+        : JSON.stringify([]),
+    };
+    // Thumbnail URL logic...
+    if (thumbnailStorageUrl) {
+      courseData.thumbnail_url = thumbnailStorageUrl;
+    } else if (formData.thumbnail_url) {
+      courseData.thumbnail_url = ensureFullUrl(formData.thumbnail_url);
+    }
+    // Video URL logic...
+    if (videoUrl) {
+      courseData.coursevideo_url = videoUrl;
+    } else if (formData.coursevideo_url && formData.coursevideo_url.startsWith("http")) {
+      courseData.coursevideo_url = formData.coursevideo_url;
+    }
+    // Admin ID
+    if (profile?.role === "admin") {
+      courseData.admin_id = profile.id;
+    }
+
+    // Show confirmation dialog
+    setCourseDataToSubmit(courseData);
+    setShowConfirmation(true);
+  };
+
+  // Handle confirmed submission
+  const handleConfirmedSubmit = async () => {
+    setShowConfirmation(false);
+    setLoading(true);
+
     try {
-      // Prepare course data
-      const courseData = {
-        title: formData.title,
-        description: formData.description,
-        creator_id: formData.creator_id,
-        category_id: formData.category_id,
-        price: parseFloat(formData.price) || 0,
-        requirements_json: formData.requirements
-          ? JSON.stringify(formData.requirements.split("\n").filter(Boolean))
-          : JSON.stringify([]),
-      };
-
-      // Use the storage URL for thumbnail, not the data URL
-      if (thumbnailStorageUrl) {
-        courseData.thumbnail_url = thumbnailStorageUrl;
-      } else if (formData.thumbnail_url) {
-        courseData.thumbnail_url = ensureFullUrl(formData.thumbnail_url);
-      }
-
-      // Add video URL if available
-      if (videoUrl) {
-        courseData.coursevideo_url = videoUrl;
-      } else if (formData.coursevideo_url && formData.coursevideo_url.startsWith("http")) {
-        courseData.coursevideo_url = formData.coursevideo_url;
-      }
-
-      // Add admin ID if user is admin
-      if (profile?.role === "admin") {
-        courseData.admin_id = profile.id;
-      }
-
-      console.log("Creating course with data:", courseData);
-
-      // Create course
-      const { data, error } = await createCourse(courseData);
-
+      const { data, error } = await createCourse(courseDataToSubmit);
       if (error) {
-        // If the error is related to the 'requirements' column, try again without it
-        if (error.message && error.message.includes("requirements")) {
-          console.log("Retrying without requirements field");
-
-          // Remove the requirements_json field and try again
-          delete courseData.requirements_json;
-
-          // Try creating the course again
-          const retryResult = await createCourse(courseData);
-
-          if (retryResult.error) {
-            throw new Error(
-              `Error creating course: ${retryResult.error.message}`
-            );
-          }
-
-          // Success on retry
-          setSuccess(true);
-          setFormData({
-            title: "",
-            description: "",
-            creator_id: "",
-            category_id: "",
-            price: 0,
-            requirements: "",
-            thumbnail_url: "",
-            coursevideo_url: "",
-          });
-
-          // Reset file states
-          setThumbnailFile(null);
-          setThumbnailPreviewUrl("");
-          setThumbnailStorageUrl("");
-          setVideoFile(null);
-          setVideoUrl("");
-
-          // Redirect after a delay
-          setTimeout(() => {
-            router.push("/admin/courses");
-          }, 2000);
-
-          return;
-        }
-
-        throw new Error(`Error creating course: ${error.message}`);
+        throw new Error(error.message);
       }
-
-      // Success
       setSuccess(true);
-      setFormData({
-        title: "",
-        description: "",
-        creator_id: "",
-        category_id: "",
-        price: 0,
-        requirements: "",
-        thumbnail_url: "",
-        coursevideo_url: "",
-      });
-
-      // Reset file states
-      setThumbnailFile(null);
-      setThumbnailPreviewUrl("");
-      setThumbnailStorageUrl("");
-      setVideoFile(null);
-      setVideoUrl("");
-
-      // Redirect after a delay
-      setTimeout(() => {
-        router.push("/admin/courses");
-      }, 2000);
+      resetForm();
+      // Redirect after a short delay
+      setTimeout(() => router.push("/admin/courses"), 2000);
     } catch (err) {
-      console.error("Error in form submission:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Reset form helper
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: "",
+      creator_id: "",
+      category_id: "",
+      price: 0,
+      requirements: "",
+      thumbnail_url: "",
+      coursevideo_url: "",
+    });
+    setThumbnailFile(null);
+    setThumbnailPreviewUrl("");
+    setThumbnailStorageUrl("");
+    setVideoFile(null);
+    setVideoUrl("");
+  };
+
+  // Handle dialog close
+  const handleCancelDialog = () => {
+    setShowConfirmation(false);
   };
 
   return (
@@ -476,35 +461,51 @@ export default function CourseForm() {
         </div>
 
         <div>
-          <label className="block mb-2 font-medium">Price ($)</label>
+          <label className="block mb-2 font-medium">
+            Price ($) <span className="text-red-500">*</span>
+          </label>
           <input
             type="number"
             name="price"
             value={formData.price}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            className={`w-full p-2 border rounded ${
+              !validation.price ? "border-red-500" : "border-gray-300"
+            }`}
             min="0"
             step="0.01"
           />
+          {!validation.price && (
+            <p className="text-red-500 text-sm mt-1">Valid price is required</p>
+          )}
         </div>
 
         <div>
-          <label className="block mb-2 font-medium">Requirements</label>
+          <label className="block mb-2 font-medium">
+            Requirements <span className="text-red-500">*</span>
+          </label>
           <textarea
             name="requirements"
             value={formData.requirements}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            className={`w-full p-2 border rounded ${
+              !validation.requirements ? "border-red-500" : "border-gray-300"
+            }`}
             rows="4"
             placeholder="Enter each requirement on a new line"
           ></textarea>
           <p className="text-sm text-gray-500 mt-1">
             Enter each requirement on a new line
           </p>
+          {!validation.requirements && (
+            <p className="text-red-500 text-sm mt-1">At least one requirement is required</p>
+          )}
         </div>
 
         <div>
-          <label className="block mb-2 font-medium">Course Thumbnail</label>
+          <label className="block mb-2 font-medium">
+            Course Thumbnail <span className="text-red-500">*</span>
+          </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <UploadBox
@@ -529,12 +530,17 @@ export default function CourseForm() {
                   name="thumbnail_url"
                   value={formData.thumbnail_url}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className={`w-full p-2 border rounded ${
+                    !validation.thumbnail_url ? "border-red-500" : "border-gray-300"
+                  }`}
                   placeholder="Enter thumbnail URL (if not uploading)"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   URLs should start with http:// or https:// for proper display
                 </p>
+                {!validation.thumbnail_url && (
+                  <p className="text-red-500 text-sm mt-1">Thumbnail is required</p>
+                )}
                 {thumbnailStorageUrl && (
                   <p className="text-xs text-green-600 mt-1">
                     Storage URL: {thumbnailStorageUrl}
@@ -555,7 +561,9 @@ export default function CourseForm() {
         </div>
 
         <div>
-          <label className="block mb-2 font-medium">Course Video</label>
+          <label className="block mb-2 font-medium">
+            Course Video <span className="text-red-500">*</span>
+          </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <UploadBox
@@ -580,9 +588,14 @@ export default function CourseForm() {
                   name="coursevideo_url"
                   value={formData.coursevideo_url}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className={`w-full p-2 border rounded ${
+                    !validation.coursevideo_url ? "border-red-500" : "border-gray-300"
+                  }`}
                   placeholder="Enter video URL (if not uploading)"
                 />
+                {!validation.coursevideo_url && (
+                  <p className="text-red-500 text-sm mt-1">Video is required</p>
+                )}
                 {videoUrl && (
                   <p className="text-xs text-green-600 mt-1">
                     Storage URL: {videoUrl}
@@ -612,6 +625,13 @@ export default function CourseForm() {
           </button>
         </div>
       </form>
+
+      {/* Confirmation dialog */}
+      <ConfirmationDialog
+        isOpen={showConfirmation}
+        onClose={handleCancelDialog}
+        onConfirm={handleConfirmedSubmit}
+      />
     </div>
   );
 }

@@ -13,25 +13,25 @@ export default function CreatorMyCourses() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Only fetch courses when auth is loaded and user is creator
-    if (!authLoading && profile && (profile.role === "creator" || profile.role === "admin")) {
-      fetchCreatorCourses();
+    // Only fetch courses when auth is loaded and user is admin
+    if (!authLoading && profile && profile.role === "admin") {
+      fetchAdminCourses();
     } else if (!authLoading && profile) {
-      // Not a creator, stop loading
+      // Not an admin, stop loading
       setLoading(false);
     }
   }, [authLoading, profile]);
 
-  const fetchCreatorCourses = async () => {
+  const fetchAdminCourses = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Fetch courses created by this creator
+      // Fetch courses assigned to this admin
       const { data: coursesData, error: coursesError } = await supabase
         .from("courses")
         .select("*")
-        .eq("creator_id", profile.id)
+        .eq("admin_id", profile.id)
         .order("created_at", { ascending: false });
 
       if (coursesError) {
@@ -70,7 +70,7 @@ export default function CreatorMyCourses() {
 
       setCourses(coursesWithAnalytics);
     } catch (err) {
-      console.error("Error fetching creator courses:", err);
+      console.error("Error fetching admin courses:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -96,8 +96,8 @@ export default function CreatorMyCourses() {
     );
   }
 
-  // Access control - only creators and admins can view
-  if (profile && profile.role !== "creator" && profile.role !== "admin") {
+  // Access control - only admins can view
+  if (profile && profile.role !== "admin") {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -106,7 +106,7 @@ export default function CreatorMyCourses() {
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
                 <p className="text-gray-600">
-                  You need creator permissions to access this page.
+                  You need admin permissions to access this page.
                 </p>
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function CreatorMyCourses() {
                 </p>
                 <p className="text-sm text-gray-500 mt-2">{error}</p>
                 <button 
-                  onClick={fetchCreatorCourses}
+                  onClick={fetchAdminCourses}
                   className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
                 >
                   Try Again
@@ -157,7 +157,7 @@ export default function CreatorMyCourses() {
                   You dont have any courses yet
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Courses are created by admins. Contact an administrator to have courses assigned to you.
+                  No courses are currently assigned to you.
                 </p>
               </div>
             </div>
@@ -182,12 +182,12 @@ export default function CreatorMyCourses() {
               className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col transition-transform hover:shadow-lg hover:-translate-y-1"
             >
               <div className="relative h-48">
-                {course.image_url ? (
+                {course.thumbnail_url ? (
                   <div className="relative w-full h-full">
                     <Image
-                      src={course.image_url}
+                      src={course.thumbnail_url}
                       alt={course.title}
-                      fill
+                      fill={true}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       style={{ objectFit: "cover" }}
                     />
@@ -232,7 +232,7 @@ export default function CreatorMyCourses() {
 
               <div className="border-t border-gray-200 p-4 bg-gray-50">
                 <Link 
-                  href={`/admin/courses/${course.id}/stats`} 
+                  href={"/admin"} 
                   className="block w-full py-2 text-center text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors"
                 >
                   View Detailed Stats

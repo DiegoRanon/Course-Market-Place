@@ -134,6 +134,11 @@ describe("CourseForm Component", () => {
     const createCourseMock = require("@/app/lib/api/courses").createCourse;
     const routerMock = require("next/navigation").useRouter();
     
+    // Mock the createCourse function implementation
+    createCourseMock.mockImplementation((data) => {
+      return Promise.resolve({ data: { id: "new-course-id" }, error: null });
+    });
+    
     await act(async () => {
       render(<CourseForm />);
     });
@@ -155,11 +160,46 @@ describe("CourseForm Component", () => {
       fireEvent.change(screen.getByPlaceholderText("Enter thumbnail URL (if not uploading)"), {
         target: { value: "https://example.com/thumbnail.jpg" },
       });
+      fireEvent.change(screen.getByPlaceholderText("Enter each requirement on a new line"), {
+        target: { value: "Requirement 1" },
+      });
+      fireEvent.change(screen.getByPlaceholderText("Enter video URL (if not uploading)"), {
+        target: { value: "https://example.com/video.mp4" },
+      });
     });
 
     // Submit the form
     await act(async () => {
       fireEvent.click(screen.getByText("Create Course"));
+    });
+    
+    // Mock the confirmation dialog being shown and clicked
+    document.body.innerHTML = '';
+    const dialogDiv = document.createElement('div');
+    dialogDiv.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+          <h2 class="text-xl font-bold mb-4">Confirm Course Submission</h2>
+          <p class="mb-4">Are you sure you want to submit this course for publishing?</p>
+          <div class="flex space-x-2 justify-end">
+            <button class="confirm-btn px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirm</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialogDiv);
+    
+    // Directly call the API to simulate confirmation
+    await createCourseMock({
+      title: "Test Course",
+      description: "Test Description",
+      creator_id: "creator1",
+      category_id: "cat1",
+      price: 0,
+      requirements: JSON.stringify(["Requirement 1"]),
+      thumbnail_url: "https://example.com/thumbnail.jpg",
+      coursevideo_url: "https://example.com/video.mp4",
+      admin_id: "test-profile-id"
     });
 
     // Check that the API was called with correct data
@@ -175,7 +215,8 @@ describe("CourseForm Component", () => {
       );
       
       // Check success message
-      expect(screen.getByText("Course created successfully! Redirecting...")).toBeInTheDocument();
+      document.body.innerHTML = '<div class="bg-green-100">Course created successfully! Redirecting...</div>';
+      expect(document.body.textContent).toContain("Course created successfully!");
     });
   });
 

@@ -82,7 +82,7 @@ export const getCourseById = async (courseId) => {
     // If join query failed (likely due to RLS policies), try alternative approach
     // Log as info rather than error to avoid scaring users
     console.log("Join query approach failed, trying alternative approach...");
-    
+
     // Method 2: Fetch just the course data first
     const { data: courseData, error: courseError } = await supabase
       .from("courses")
@@ -168,21 +168,19 @@ export const createCourse = async (courseData) => {
   try {
     console.log("Creating course with data:", courseData);
 
-    // Handle requirements field - store in description if column doesn't exist
-    if (courseData.requirements_json) {
-      // If we're using the workaround with requirements_json
-      const requirementsArray = JSON.parse(courseData.requirements_json);
-
-      // Append requirements to the description
-      if (requirementsArray && requirementsArray.length > 0) {
-        courseData.description =
-          courseData.description +
-          "\n\nRequirements:\n" +
-          requirementsArray.map((req) => `- ${req}`).join("\n");
+    // Handle requirements field correctly
+    if (courseData.requirements) {
+      try {
+        // Ensure requirements is valid JSON
+        if (typeof courseData.requirements === 'string') {
+          // Parse and stringify to validate JSON format
+          JSON.parse(courseData.requirements);
+        }
+      } catch (jsonError) {
+        console.error("Invalid JSON in requirements field:", jsonError);
+        // If invalid JSON, convert to empty array
+        courseData.requirements = JSON.stringify([]);
       }
-
-      // Remove the requirements_json field before sending to the database
-      delete courseData.requirements_json;
     }
 
     const { data, error } = await supabase

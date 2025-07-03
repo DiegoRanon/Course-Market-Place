@@ -81,53 +81,53 @@ export default function CourseDetails() {
     console.log(`Fetching course details for ID: ${courseId}`);
 
     try {
-      const { data, error } = await getCourseById(courseId);
-      
+    const { data, error } = await getCourseById(courseId);
+
       // If we got data but still have an error, we can proceed with the data
       // This handles the case where the join query fails but we still get course data
       if (data) {
-        console.log("Course data received:", {
-          id: data.id,
-          title: data.title,
-          creator_id: data.creator_id,
-          creator: data.creator,
-          video_url: data.video_url,
-        });
-        
-        // If creator info is nested, add it directly to the course object
-        if (data.creator) {
-          console.log("Creator info found in response:", data.creator);
-          
-          // If creator is an array (from join), use the first item
-          if (Array.isArray(data.creator)) {
-            data.creator = data.creator[0];
-            console.log("Creator extracted from array:", data.creator);
-          }
-          
-          // Set instructor info from creator data
-          data.instructor = data.creator.full_name || "Unknown Instructor";
-          data.instructor_avatar = data.creator.avatar_url;
-        } else {
+      console.log("Course data received:", {
+        id: data.id,
+        title: data.title,
+        creator_id: data.creator_id,
+        creator: data.creator,
+        video_url: data.video_url,
+      });
+
+      // If creator info is nested, add it directly to the course object
+      if (data.creator) {
+        console.log("Creator info found in response:", data.creator);
+
+        // If creator is an array (from join), use the first item
+        if (Array.isArray(data.creator)) {
+          data.creator = data.creator[0];
+          console.log("Creator extracted from array:", data.creator);
+        }
+
+        // Set instructor info from creator data
+        data.instructor = data.creator.full_name || "Unknown Instructor";
+        data.instructor_avatar = data.creator.avatar_url;
+      } else {
           console.log("No creator info in response, using fallback");
           // Fallback instructor info
           data.instructor = "Course Instructor";
           data.instructor_avatar = null;
-        }
-        
-        // Ensure total_students is available
-        data.students = data.total_students || 0;
-        
-        // Log video URL for debugging
-        if (data.video_url) {
-          console.log("Course has video URL:", data.video_url);
-        } else {
-          console.log("Course does not have a video URL");
-        }
+      }
+
+      // Ensure total_students is available
+      data.students = data.total_students || 0;
+
+      // Log video URL for debugging
+      if (data.video_url) {
+        console.log("Course has video URL:", data.video_url);
+      } else {
+        console.log("Course does not have a video URL");
+      }
         
         setCourse(data);
         setError(null); // Clear any errors if we have data
-      } else if (error) {
-        console.error("Error fetching course:", error);
+    } else if (error) {
+      console.error("Error fetching course:", error);
         setError(error);
       } else {
         // No data and no error - this shouldn't happen but handle it anyway
@@ -138,7 +138,7 @@ export default function CourseDetails() {
       console.error("Exception while fetching course:", err);
       setError({ message: err.message || "An unexpected error occurred" });
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
 
@@ -230,7 +230,7 @@ export default function CourseDetails() {
     <div className="min-h-screen bg-gray-50">
       {!showVideo ? (
         // Show course header if video is not showing
-        <CourseHeader course={course} onEnroll={handleEnroll} />
+      <CourseHeader course={course} onEnroll={handleEnroll} />
       ) : (
         // Show video player when enrolled and video should be shown
         <div className="bg-black py-8">
@@ -439,7 +439,7 @@ export default function CourseDetails() {
                     Go to Course Dashboard
                   </Button>
                 )}
-              </div>
+                </div>
 
               <div className="bg-gray-50 p-6 border-t">
                 <h4 className="font-medium text-gray-900 mb-1">
